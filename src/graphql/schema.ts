@@ -38,17 +38,16 @@ var schema = buildSchema(`
     }
 
     type Query {
-        message: String
+        message: MessageResponse
     }
-
+    
+    input CreateUserInput {
+        name: String
+    }
 
     type Mutation {
-        createUser(persona: CreatePersona): MessageResponse
-        login(credentials: InputLogin): LoginResponse
-        getCurrentUser(token: String): PersonaPublic
+        testUser(name: String!): MessageResponse
     }
-
-
 `);
 
 export default schema;
