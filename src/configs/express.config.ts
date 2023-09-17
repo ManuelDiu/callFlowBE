@@ -5,7 +5,6 @@ import morgan from 'morgan';
 
 import authenticate from '../middlewares/authenticate.middleware';
 import constants from '../constants';
-import indexRoute from '../routes/index.route';
 import joiErrorHandler from '../middlewares/joi-error-handler.middleware';
 import { notFoundErrorHandler, errorHandler } from '../middlewares/api-error-handler.middleware';
 import { graphqlHTTP } from "express-graphql";
@@ -49,9 +48,6 @@ app.use(bodyParser.json());
 app.use(morgan('dev'));
 
 app.use(authenticate);
-
-// Router
-app.use(constants.APPLICATION.url.basePath, indexRoute);
 
 // Joi Error Handler
 app.use(joiErrorHandler);

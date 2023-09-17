@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 5000;
 const connect = async () => {
   try {
     const connection = await createConnection(); // Connect to the DB that is setup in the ormconfig.js
-    await connection.runMigrations(); // Run all migrations
+    // await connection.runMigrations(); // Run all migrations
     logger.info('Connect to database successfully');
     app.listen(PORT, () => {
       logger.info(`Server running at ${PORT}`);
