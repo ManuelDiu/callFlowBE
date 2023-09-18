@@ -1,6 +1,9 @@
 import { buildSchema } from "graphql";
+import usuarioSchema from "./schemas/usuario/usuario";
+import { mergeTypeDefs } from "@graphql-tools/merge"
+import { gql } from "apollo-server-express";
 
-var schema = buildSchema(`
+var schema = gql`
 
     input CreatePersona {
         nombre: String
@@ -38,16 +41,21 @@ var schema = buildSchema(`
     }
 
     type Query {
-        message: MessageResponse
+        message: MessageResponse,
+        testUsuario: MessageResponse
     }
-    
+
     input CreateUserInput {
         name: String
     }
 
     type Mutation {
         testUser(name: String!): MessageResponse
+        prueba: String
     }
-`);
+`;
 
-export default schema;
+const allSchemas = [usuarioSchema, schema];
+
+
+export default mergeTypeDefs(allSchemas);

@@ -18,7 +18,7 @@ export class Usuario extends BaseEntity {
   @Unique(['email'])
   email: string;
 
-  @Column({ length: 100, nullable: false, select: false })
+  @Column({ length: 100, nullable: false, select: true })
   password: string;
 
   @Column({ length: 255, nullable: false })
@@ -32,8 +32,18 @@ export class Usuario extends BaseEntity {
 
   @Column({ length: 1000, nullable: true })
   imageUrl: string;
-  
-  @Column({ 
+
+  @Column({
+    default: false,
+  })
+  activo: boolean;
+
+  @Column({
+    nullable: true,
+  })
+  telefono: string;
+
+  @Column({
     type: "enum",
     enum: ITR,
     nullable: false,

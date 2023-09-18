@@ -25,7 +25,7 @@ export default class Encryption {
     });
   }
 
-  static async generateCookie(key: string, value: string) {
+  static async generateJWT(key: string, value: string) {
     const data: { [key: string]: string } = {};
     data[key] = value;
     return await jwt.sign({ data }, constants.APPLICATION.env.authSecret, {
@@ -33,7 +33,7 @@ export default class Encryption {
     });
   };
 
-  static async verifyCookie(token: string): Promise<any> {
+  static async verifyJWT(token: string): Promise<any> {
     return new Promise((resolve) => {
       jwt.verify(
         token,

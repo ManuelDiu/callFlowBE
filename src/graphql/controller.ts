@@ -1,19 +1,13 @@
+import llamadoController from "./controllers/llamado/llamado";
+import usuarioController from "./controllers/usuario/usuario";
 
 interface TestUserInput {
     name: string
 }
 
-var controller = {
-    message: () => ({
-        ok: true,
-        message: "asd"
-    }),
-    testUser: ({ name }: TestUserInput) => {
-        return {
-            ok: true,
-            message: name
-        }
-    }
+const controller = {
+    ...usuarioController,
+    ...llamadoController
 };
 
 

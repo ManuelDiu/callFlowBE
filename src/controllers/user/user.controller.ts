@@ -132,7 +132,7 @@ const remove: IController = async (req, res) => {
 const generateUserCookie = async (userId: number) => {
   return {
     key: constants.COOKIE.COOKIE_USER,
-    value: await Encryption.generateCookie(constants.COOKIE.KEY_USER_ID, userId.toString()),
+    value: await Encryption.generateJWT(constants.COOKIE.KEY_USER_ID, userId.toString()),
   };
 };
 
