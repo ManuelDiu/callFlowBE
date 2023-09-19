@@ -1,7 +1,7 @@
 import { isAdmin } from "middlewares/permission-handler.middleware";
 import { checkAuth } from "utilities/checkAuth";
 
-const llamadoController = {
+const llamadoController: any = {
   Mutation: {
     prueba: async (_: any, __: any, context: any) => {
         console.log("other", context)

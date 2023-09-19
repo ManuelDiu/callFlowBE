@@ -5,9 +5,10 @@ interface TestUserInput {
     name: string
 }
 
-const controller = {
+const controller = { 
+    ...llamadoController,
     ...usuarioController,
-    ...llamadoController
+   
 };
 
 

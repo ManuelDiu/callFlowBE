@@ -50,6 +50,7 @@ var schema = gql`
     }
 
     type Mutation {
+        getAlgo: String
         testUser(name: String!): MessageResponse
         prueba: String
     }

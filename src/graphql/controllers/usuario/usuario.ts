@@ -11,9 +11,10 @@ import { getRepository } from 'typeorm';
 import { Roles as EnumRoles } from 'enums/Roles';
 import { Roles } from 'entities/roles/roles.entity';
 
-const usuarioController = {
+const usuarioController: any = {
   Mutation: {
-    createUser: async ({
+    getAlgo: () => "algo",
+    createUser: async (_: any,{
       data,
     }: {
       data: CreateUserType;
@@ -45,6 +46,7 @@ const usuarioController = {
           }),
         );
         await allRpomises;
+        console.log('newUserRoles', newUserRoles)
         newUser.roles = newUserRoles;
 
         if (!data?.itr) {
@@ -70,7 +72,7 @@ const usuarioController = {
         };
       }
     },
-    login: async ({
+    login: async (_: any,{
       data,
     }: {
       data: LoginCredentials;
@@ -114,7 +116,7 @@ const usuarioController = {
         };
       }
     },
-    checkToken: async ({
+    checkToken: async (_: any,{
       token,
     }: {
       token: string;
