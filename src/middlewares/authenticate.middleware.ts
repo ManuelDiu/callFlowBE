@@ -24,7 +24,7 @@ export default async (
     const authorizationHeader = ApiUtility.getCookieFromRequest(req, constants.COOKIE.COOKIE_USER);
 
     if (authorizationHeader) {
-      const decoded = await Encryption.verifyCookie(authorizationHeader);
+      const decoded = await Encryption.verifyJWT(authorizationHeader);
 
       if (decoded) {
         const user = await userService.getById({ id: decoded.data[constants.COOKIE.KEY_USER_ID] });

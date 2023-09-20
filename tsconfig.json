@@ -1,4 +1,8 @@
 {
+  "ts-node": {
+    // Do not forget to `npm i -D tsconfig-paths`
+    "require": ["tsconfig-paths/register"]
+  },
   "compilerOptions": {
     "module": "commonjs",
     "esModuleInterop": true,
@@ -12,16 +16,10 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "paths": {
-      "*": [
-        "node_modules/*",
-        "src/interfaces/*"
-      ]
+      "*": ["node_modules/*", "src/interfaces/*", "src/*"],
+      "/src/*": ["src/*"]
     },
-    "lib": [
-      "es2015", "es5", "es6", "dom"
-    ]
+    "lib": ["es2015", "es5", "es6", "dom"]
   },
-  "include": [
-    "src/**/*"
-, "ormconfig.js"  ]
+  "include": ["src/**/*", "ormconfig.js"]
 }

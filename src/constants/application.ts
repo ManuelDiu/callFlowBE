@@ -5,7 +5,7 @@ export default {
     basePath,
   },
   timers: {
-    userCookieExpiry: '720h',
+    userCookieExpiry: '12h',
   },
   env: {
     authSecret: process.env.TOKEN_SECRET_KEY || 'test',
