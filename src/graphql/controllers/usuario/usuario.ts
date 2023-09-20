@@ -5,6 +5,7 @@ import {
   CreateUserResponse,
   CreateUserType,
   LoginCredentials,
+  ResetPasswordInput,
   UsuarioInfo,
 } from 'types/user';
 import { getRepository } from 'typeorm';
@@ -13,18 +14,18 @@ import { Roles } from 'entities/roles/roles.entity';
 
 const usuarioController: any = {
   Mutation: {
-    getAlgo: () => "algo",
-    createUser: async (_: any,{
-      data,
-    }: {
-      data: CreateUserType;
-    }): Promise<CreateUserResponse> => {
+    getAlgo: () => 'algo',
+    createUser: async (
+      _: any,
+      {
+        data,
+      }: {
+        data: CreateUserType;
+      },
+    ): Promise<CreateUserResponse> => {
       try {
         const newUser = new Usuario();
-        const newPassword = await Encryption.generateHash(
-          data?.password,
-          10,
-        );
+
         newUser.name = data?.name;
         newUser.email = data?.email;
         newUser.lastName = data.lastname;
@@ -32,8 +33,16 @@ const usuarioController: any = {
           data?.image && data?.image !== ''
             ? data?.image
             : DEFAULT_USER_IMAGE;
-        newUser.password = newPassword;
-        newUser.telefono = data?.telefono;
+        if (data?.password && data?.password !== '') {
+          const newPassword = await Encryption.generateHash(
+            data?.password,
+            10,
+          );
+          newUser.password = newPassword;
+          newUser.telefono = data?.telefono;
+        } else {
+          newUser.password = "";
+        }
 
         //set user roles
         const newUserRoles: Roles[] = [];
@@ -46,7 +55,6 @@ const usuarioController: any = {
           }),
         );
         await allRpomises;
-        console.log('newUserRoles', newUserRoles)
         newUser.roles = newUserRoles;
 
         if (!data?.itr) {
@@ -55,11 +63,17 @@ const usuarioController: any = {
         newUser.itr = data?.itr;
 
         newUser.biografia = data?.biografia;
+        const resetPasswordToken = await Encryption.generateJWT(
+          'email',
+          newUser?.email,
+        );
+
         const userCreation = await getRepository(Usuario).save(newUser);
         if (userCreation.id) {
           return {
             ok: true,
             message: 'Usuario creado correctamente',
+            token: resetPasswordToken,
           };
         } else {
           throw new Error('Eror al crear usuario');
@@ -72,11 +86,14 @@ const usuarioController: any = {
         };
       }
     },
-    login: async (_: any,{
-      data,
-    }: {
-      data: LoginCredentials;
-    }): Promise<CreateUserResponse> => {
+    login: async (
+      _: any,
+      {
+        data,
+      }: {
+        data: LoginCredentials;
+      },
+    ): Promise<CreateUserResponse> => {
       try {
         const user = await getRepository(Usuario).findOne({
           email: data?.email,
@@ -85,10 +102,11 @@ const usuarioController: any = {
         if (!user || !user?.id) {
           throw new Error('Credenciales invalidas');
         }
-
-        //   if (!user?.activo) {
-        //     throw new Error('La cuenta esta desactivada');
-        //   }
+        if (!user?.activo) {
+          throw new Error(
+            'Usuario desactivado, restablece tu password',
+          );
+        }
 
         const isCorrectPassword = await Encryption.verifyHash(
           data?.password,
@@ -116,13 +134,17 @@ const usuarioController: any = {
         };
       }
     },
-    checkToken: async (_: any,{
-      token,
-    }: {
-      token: string;
-    }): Promise<UsuarioInfo> => {
+    checkToken: async (
+      _: any,
+      {
+        token,
+      }: {
+        token: string;
+      },
+    ): Promise<UsuarioInfo> => {
       try {
         const info = await Encryption.verifyJWT(token);
+        console.log("info", info)
         if (!info || !info?.data?.uid) {
           throw new Error('Token invalido');
         }
@@ -144,7 +166,49 @@ const usuarioController: any = {
         } as any;
         return dataToReturn as UsuarioInfo;
       } catch (e) {
-        return null;
+        throw new Error(e?.message)
+      }
+    },
+    resetPassword: async (
+      _: any,
+      { info: data }: {info: ResetPasswordInput},
+    ): Promise<CreateUserResponse> => {
+      try {
+        const { token, password, newPassword } = data;
+        const info = await Encryption.verifyJWT(token);
+        if (!info || !info?.data?.email) {
+          throw new Error('Token invalido');
+        }
+        const userEmail = info?.data?.email;
+        const userInfo = await getRepository(Usuario).findOne({
+          email: userEmail,
+        });
+        if (!userInfo) {
+          throw new Error('Usuario no encontrado');
+        }
+        if (password !== newPassword) {
+          throw new Error('Error al validar la password');
+        }
+
+        const encryptedPass = await Encryption.generateHash(
+          newPassword,
+          10,
+        );
+        userInfo.password = encryptedPass;
+        if (!userInfo?.activo) {
+          userInfo.activo = true;
+        }
+        await getRepository(Usuario).save(userInfo);
+
+        return {
+          ok: true,
+          message: 'Usuario actualizado correctamente',
+        } as CreateUserResponse;
+      } catch (e) {
+        return {
+          ok: false,
+          message: e?.message,
+        };
       }
     },
   },

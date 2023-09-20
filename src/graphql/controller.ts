@@ -5,10 +5,15 @@ interface TestUserInput {
     name: string
 }
 
-const controller = { 
-    ...llamadoController,
-    ...usuarioController,
-   
+const controller = {
+    Mutation: {
+        ...llamadoController?.Mutation,
+        ...usuarioController?.Mutation,
+    },
+    Query: {
+        ...llamadoController?.Query,
+        ...usuarioController?.Query,
+    }
 };
 
 

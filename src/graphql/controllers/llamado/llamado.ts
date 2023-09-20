@@ -1,16 +1,13 @@
+import { Roles } from "enums/Roles";
 import { isAdmin } from "middlewares/permission-handler.middleware";
 import { checkAuth } from "utilities/checkAuth";
 
 const llamadoController: any = {
   Mutation: {
-    prueba: async (_: any, __: any, context: any) => {
-        console.log("other", context)
-        // checkAuth(context);
-        // console.log("data1", data1)
-        // console.log("data2", data2)
-        // console.log("data3", data3)
+    prueba: async (_: any, __: any, context: any, ) => {
+        await checkAuth(context, [Roles.cordinador, Roles.admin]);
     
-        return "test";
+        return "solo llega si el usuario tiene rol cordinador o admin";
       }
   }
 };

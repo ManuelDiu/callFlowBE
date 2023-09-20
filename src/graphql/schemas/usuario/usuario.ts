@@ -23,7 +23,7 @@ const usuarioSchema = gql`
 
     input CrearUsuario {
         email: String!
-        password: String!
+        password: String
         name: String!
         lastname: String
         image: String
@@ -31,6 +31,12 @@ const usuarioSchema = gql`
         roles: [UserRole]!
         itr: ITR!
         telefono: String
+    }
+
+    input ResetPasswordInput {
+        token: String!
+        newPassword: String!
+        password: String!
     }
 
     type UsuarioInfo {
@@ -54,6 +60,7 @@ const usuarioSchema = gql`
         createUser(data: CrearUsuario!): AuthUserResponse
         login(data: LoginCredentials!): AuthUserResponse
         checkToken(token: String): UsuarioInfo
+        resetPassword(info: ResetPasswordInput!): AuthUserResponse
     }
 `;
 

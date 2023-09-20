@@ -36,3 +36,9 @@ export type CreateUserResponse = {
     token?: string;
     message?: string;
 }
+
+export type ResetPasswordInput = {
+    token: string;
+    password: string;
+    newPassword: string;
+}
