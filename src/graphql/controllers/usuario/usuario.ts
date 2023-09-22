@@ -103,6 +103,8 @@ const usuarioController: any = {
           email: data?.email,
         });
 
+        console.log("user", user)
+
         if (!user || !user?.id) {
           throw new Error('Credenciales invalidas');
         }
@@ -112,6 +114,7 @@ const usuarioController: any = {
           );
         }
 
+        console.log(user?.password)
         const isCorrectPassword = await Encryption.verifyHash(
           data?.password,
           user?.password,
