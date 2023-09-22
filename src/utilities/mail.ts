@@ -9,8 +9,8 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendEmail = (
-  asunto: string,
   destinatario: string,
+  asunto: string,
   content: string,
 ) => {
   const mailOptions = {

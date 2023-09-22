@@ -36,7 +36,7 @@ export class Usuario extends BaseEntity {
   @Column({ length: 1000, nullable: true })
   telefono: string;
 
-  @Column({ length: 1000, nullable: false, default: true })
+  @Column({ nullable: false, default: true })
   activo: boolean;
 
   @Column({

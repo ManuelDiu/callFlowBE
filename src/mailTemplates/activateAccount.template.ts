@@ -1,58 +1,6 @@
 export const accountActivateTemplate = (token: string, frontUrl: string, username: string) => {
 
   return `
-  Projects
-Library
-Settings
-
-
-profile-thumbnail
-FREE
-Maximiliano Olivera
-Maximiliano's organization
-Projects
-New email
-https://l5xdrv7104.preview-postedstuff.com/V2-8Cbc-ZCLWp-ZjxYJ-wmfy/
-
-
-Email Details
-
-Email History
-You have made 2 out of 6 monthly exports
-Go unlimited
-Last edit 1 hour ago by Maximiliano Olivera
-Edit Email
-
-Export
-
-New email
-Subject, Preheader, and UTMs
-
-Enable import link
-Enable this option to allow your clients, community, and the entire world to import and use this design in their Beefree accounts. Activate it, copy the link, and share it with whoever you want. You can disable it at any time. Learn more about the import link.
-
-
-Send test email
-
-Generate page
-
-Create a template
-© 2016-2023 BEE Content Design, Inc - All rights reserved
-Beefree Terms of Use|
-Privacy Policy|
-Status page
-The HTML was copied!
-The HTML source code has been successfully copied to your clipboard.
-×
-3
-Share Icon
-Copy your email link with a single click. You can share this with anyone!
-
-×
-Select an export option
-You have made 2 out of 6 monthly exports
-Go unlimited
-Back
 <!DOCTYPE html>
 <html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en">
 
@@ -256,7 +204,7 @@ Back
 													<table class="button_block block-4" width="100%" border="0" cellpadding="10" cellspacing="0" role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;">
 														<tr>
 															<td class="pad">
-																<div class="alignment" align="center"><!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${frontUrl}/reset-password?token=${token}" style="height:42px;width:150px;v-text-anchor:middle;" arcsize="20%" stroke="false" fillcolor="#000000"><w:anchorlock/><v:textbox inset="0px,0px,0px,0px"><center style="color:#ffffff; font-family:sans-serif; font-size:16px"><![endif]--><a href="https://www.example.com" target="_blank" style="text-decoration:none;display:inline-block;color:#ffffff;background-color:#000000;border-radius:8px;width:auto;border-top:0px solid TRANSPARENT;font-weight:undefined;border-right:0px solid TRANSPARENT;border-bottom:0px solid TRANSPARENT;border-left:0px solid TRANSPARENT;padding-top:5px;padding-bottom:5px;font-family:Rubik, Trebuchet MS, Helvetica, sans-serif;font-size:16px;text-align:center;mso-border-alt:none;word-break:keep-all;"><span style="padding-left:20px;padding-right:20px;font-size:16px;display:inline-block;letter-spacing:normal;"><span style="word-break: break-word; line-height: 32px;">Activar Cuenta</span></span></a><!--[if mso]></center></v:textbox></v:roundrect><![endif]--></div>
+																<div class="alignment" align="center"><!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="#" style="height:42px;width:150px;v-text-anchor:middle;" arcsize="20%" stroke="false" fillcolor="#000000"><w:anchorlock/><v:textbox inset="0px,0px,0px,0px"><center style="color:#ffffff; font-family:sans-serif; font-size:16px"><![endif]--><a href="${frontUrl}/reset-password?token=${token}" target="_blank" style="text-decoration:none;display:inline-block;color:#ffffff;background-color:#000000;border-radius:8px;width:auto;border-top:0px solid TRANSPARENT;font-weight:undefined;border-right:0px solid TRANSPARENT;border-bottom:0px solid TRANSPARENT;border-left:0px solid TRANSPARENT;padding-top:5px;padding-bottom:5px;font-family:Rubik, Trebuchet MS, Helvetica, sans-serif;font-size:16px;text-align:center;mso-border-alt:none;word-break:keep-all;"><span style="padding-left:20px;padding-right:20px;font-size:16px;display:inline-block;letter-spacing:normal;"><span style="word-break: break-word; line-height: 32px;">Activar Cuenta</span></span></a><!--[if mso]></center></v:textbox></v:roundrect><![endif]--></div>
 															</td>
 														</tr>
 													</table>
