@@ -11,6 +11,8 @@ import {
 import { getRepository } from 'typeorm';
 import { Roles as EnumRoles } from 'enums/Roles';
 import { Roles } from 'entities/roles/roles.entity';
+import { sendEmail } from 'utilities/mail';
+import { accountActivateTemplate } from 'mailTemplates/activateAccount.template';
 
 const usuarioController: any = {
   Mutation: {
@@ -67,13 +69,15 @@ const usuarioController: any = {
           'email',
           newUser?.email,
         );
+        newUser.resetPasswordToken = resetPasswordToken;
+
+        await sendEmail(newUser?.email, "Bienvenido a CallSync", accountActivateTemplate(resetPasswordToken, process.env.APP_FRONTEND_URL, `${newUser?.name} ${newUser?.password}`));
 
         const userCreation = await getRepository(Usuario).save(newUser);
         if (userCreation.id) {
           return {
             ok: true,
             message: 'Usuario creado correctamente',
-            token: resetPasswordToken,
           };
         } else {
           throw new Error('Eror al crear usuario');
@@ -144,7 +148,6 @@ const usuarioController: any = {
     ): Promise<UsuarioInfo> => {
       try {
         const info = await Encryption.verifyJWT(token);
-        console.log("info", info)
         if (!info || !info?.data?.uid) {
           throw new Error('Token invalido');
         }
@@ -190,11 +193,16 @@ const usuarioController: any = {
           throw new Error('Error al validar la password');
         }
 
+        if (token !== userInfo?.resetPasswordToken) {
+          throw new Error("Token invalido");
+        }
+
         const encryptedPass = await Encryption.generateHash(
           newPassword,
           10,
         );
         userInfo.password = encryptedPass;
+        userInfo.resetPasswordToken = "";
         if (!userInfo?.activo) {
           userInfo.activo = true;
         }
