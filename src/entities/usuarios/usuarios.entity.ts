@@ -18,7 +18,7 @@ export class Usuario extends BaseEntity {
   @Unique(['email'])
   email: string;
 
-  @Column({ length: 100, nullable: false, select: false })
+  @Column({ length: 100, nullable: false, select: true })
   password: string;
 
   @Column({ length: 255, nullable: false })
@@ -66,7 +66,6 @@ export class Usuario extends BaseEntity {
   resetPasswordToken: string;
 
   toJSON() {
-    delete this.password;
     return this;
   }
 
