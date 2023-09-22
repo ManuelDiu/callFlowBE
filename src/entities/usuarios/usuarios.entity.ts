@@ -18,7 +18,7 @@ export class Usuario extends BaseEntity {
   @Unique(['email'])
   email: string;
 
-  @Column({ length: 100, nullable: false, select: true })
+  @Column({ length: 100, nullable: false, select: false })
   password: string;
 
   @Column({ length: 255, nullable: false })
@@ -33,15 +33,11 @@ export class Usuario extends BaseEntity {
   @Column({ length: 1000, nullable: true })
   imageUrl: string;
 
-  @Column({
-    default: false,
-  })
-  activo: boolean;
-
-  @Column({
-    nullable: true,
-  })
+  @Column({ length: 1000, nullable: true })
   telefono: string;
+
+  @Column({ nullable: false, default: true })
+  activo: boolean;
 
   @Column({
     type: "enum",
@@ -63,6 +59,11 @@ export class Usuario extends BaseEntity {
   @OneToMany(() => FirmaEstado, (e) => e.usuario)
   firmas: FirmaEstado[];
 
+  @Column({
+    nullable: true,
+    length: 2000,
+  })
+  resetPasswordToken: string;
 
   toJSON() {
     delete this.password;
