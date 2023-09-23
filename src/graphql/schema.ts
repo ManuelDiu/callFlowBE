@@ -2,6 +2,7 @@ import { buildSchema } from "graphql";
 import usuarioSchema from "./schemas/usuario/usuario";
 import { mergeTypeDefs } from "@graphql-tools/merge"
 import { gql } from "apollo-server-express";
+import categoriaSchema from "./schemas/categoria/categoria";
 
 var schema = gql`
 
@@ -56,7 +57,7 @@ var schema = gql`
     }
 `;
 
-const allSchemas = [usuarioSchema, schema];
+const allSchemas = [usuarioSchema, categoriaSchema, schema];
 
 
 export default mergeTypeDefs(allSchemas);
