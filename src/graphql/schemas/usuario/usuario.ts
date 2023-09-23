@@ -46,12 +46,25 @@ const usuarioSchema = gql`
     type UsuarioInfo {
         email: String!
         name: String!
-        lastname: String
-        image: String
+        lastName: String
+        imageUrl: String
         biografia: String
         roles: [UserRole]!
         itr: ITR!
         telefono: String
+    }
+
+
+    type UserList {
+        email: String!
+        name: String!
+        imageUrl: String
+        lastName: String
+        roles: [UserRole]!
+        itr: ITR!
+        telefono: String
+        llamados: Int
+        activo: Boolean
     }
 
     type AuthUserResponse {
@@ -66,6 +79,10 @@ const usuarioSchema = gql`
         checkToken(token: String): UsuarioInfo
         resetPassword(info: ResetPasswordInput!): AuthUserResponse
         forgetPassword(info: ForgetPasswordInput!): AuthUserResponse
+    }
+
+    type Query {
+        listUsuarios: [UserList]
     }
 `;
 

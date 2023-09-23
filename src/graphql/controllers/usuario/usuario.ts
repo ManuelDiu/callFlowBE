@@ -6,13 +6,18 @@ import {
   CreateUserType,
   LoginCredentials,
   ResetPasswordInput,
+  UserList,
   UsuarioInfo,
 } from 'types/user';
 import { getRepository } from 'typeorm';
 import { Roles as EnumRoles } from 'enums/Roles';
 import { Roles } from 'entities/roles/roles.entity';
 import { sendEmail } from 'utilities/mail';
-import { accountActivateTemplate, resetPasswordActivate } from 'mailTemplates/activateAccount.template';
+import {
+  accountActivateTemplate,
+  resetPasswordActivate,
+} from 'mailTemplates/activateAccount.template';
+import { checkAuth } from 'utilities/checkAuth';
 
 const usuarioController: any = {
   Mutation: {
@@ -43,7 +48,7 @@ const usuarioController: any = {
           newUser.password = newPassword;
           newUser.telefono = data?.telefono;
         } else {
-          newUser.password = "";
+          newUser.password = '';
         }
 
         //set user roles
@@ -71,7 +76,15 @@ const usuarioController: any = {
         );
         newUser.resetPasswordToken = resetPasswordToken;
 
-        await sendEmail(newUser?.email, "Bienvenido a CallSync", accountActivateTemplate(resetPasswordToken, process.env.APP_FRONTEND_URL, `${newUser?.name} ${newUser?.lastName}`));
+        await sendEmail(
+          newUser?.email,
+          'Bienvenido a CallSync',
+          accountActivateTemplate(
+            resetPasswordToken,
+            process.env.APP_FRONTEND_URL,
+            `${newUser?.name} ${newUser?.lastName}`,
+          ),
+        );
 
         const userCreation = await getRepository(Usuario).save(newUser);
         if (userCreation.id) {
@@ -103,7 +116,7 @@ const usuarioController: any = {
           email: data?.email,
         });
 
-        console.log("user", user)
+        console.log('user', user);
 
         if (!user || !user?.id) {
           throw new Error('Credenciales invalidas');
@@ -114,7 +127,7 @@ const usuarioController: any = {
           );
         }
 
-        console.log(user?.password)
+        console.log(user?.password);
         const isCorrectPassword = await Encryption.verifyHash(
           data?.password,
           user?.password,
@@ -172,17 +185,20 @@ const usuarioController: any = {
         } as any;
         return dataToReturn as UsuarioInfo;
       } catch (e) {
-        throw new Error(e?.message)
+        throw new Error(e?.message);
       }
     },
-    forgetPassword: async (_: any, { info }: { info: { email: string } }) => {
+    forgetPassword: async (
+      _: any,
+      { info }: { info: { email: string } },
+    ) => {
       try {
         const userEmail = info?.email;
         const userInfo = await getRepository(Usuario).findOne({
           email: userEmail,
         });
         if (!userInfo?.id || !userInfo) {
-          throw new Error("Error al restablecer la password");
+          throw new Error('Error al restablecer la password');
         }
         const resetPasswordToken = await Encryption.generateJWT(
           'email',
@@ -190,19 +206,29 @@ const usuarioController: any = {
         );
         userInfo.resetPasswordToken = resetPasswordToken;
         await getRepository(Usuario).save(userInfo);
-        await sendEmail(userInfo?.email, "Restablece tu contraseña", resetPasswordActivate(resetPasswordToken, process.env.APP_FRONTEND_URL, `${userInfo?.name} ${userInfo?.lastName}`));
+        await sendEmail(
+          userInfo?.email,
+          'Restablece tu contraseña',
+          resetPasswordActivate(
+            resetPasswordToken,
+            process.env.APP_FRONTEND_URL,
+            `${userInfo?.name} ${userInfo?.lastName}`,
+          ),
+        );
 
         return {
           ok: true,
-          message: "Se envio un correo para restablecer la password"
-        }
+          message: 'Se envio un correo para restablecer la password',
+        };
       } catch (error) {
-        throw new Error(error?.message || "Error al restablecer la password")
+        throw new Error(
+          error?.message || 'Error al restablecer la password',
+        );
       }
     },
     resetPassword: async (
       _: any,
-      { info: data }: {info: ResetPasswordInput},
+      { info: data }: { info: ResetPasswordInput },
     ): Promise<CreateUserResponse> => {
       try {
         const { token, password, newPassword } = data;
@@ -222,7 +248,7 @@ const usuarioController: any = {
         }
 
         if (token !== userInfo?.resetPasswordToken) {
-          throw new Error("Token invalido");
+          throw new Error('Token invalido');
         }
 
         const encryptedPass = await Encryption.generateHash(
@@ -230,7 +256,7 @@ const usuarioController: any = {
           10,
         );
         userInfo.password = encryptedPass;
-        userInfo.resetPasswordToken = "";
+        userInfo.resetPasswordToken = '';
         if (!userInfo?.activo) {
           userInfo.activo = true;
         }
@@ -245,6 +271,36 @@ const usuarioController: any = {
           ok: false,
           message: e?.message,
         };
+      }
+    },
+  },
+  Query: {
+    listUsuarios: async (): Promise<UserList[]> => {
+      try {
+        await checkAuth([EnumRoles.admin]);
+        const usuarios = await getRepository(Usuario).find({
+          relations: ['roles', 'tribunales'],
+        });
+        console.log("usuarios", usuarios)
+        const formatUsers: UserList[] = usuarios.map((user) => {
+          const item: UserList = {
+            email: user?.email,
+            name: user?.name,
+            imageUrl: user?.imageUrl,
+            roles: user?.roles?.map((rol) => (rol?.nombre as EnumRoles)),
+            itr: user?.itr,
+            lastName: user?.lastName,
+            telefono: user?.telefono,
+            llamados: user?.tribunales?.length || 0,
+            activo: user?.activo,
+          };
+          return item;
+        });
+
+        console.log("formatUsers", formatUsers)
+        return formatUsers;
+      } catch (e) {
+        return [];
       }
     },
   },

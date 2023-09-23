@@ -17,13 +17,26 @@ export type CreateUserType = {
 export type UsuarioInfo = {
     email: string;
     name?: string;
-    lastname?: string;
+    lastName?: string;
     image: string;
     biografia?: string;
     roles: Roles[],
     itr: ITR,
     telefono: string,
 }
+
+export type UserList = {
+    email: string;
+    name?: string;
+    lastName?: string,
+    imageUrl?: string;
+    roles: Roles[];
+    itr?: ITR;
+    telefono: string,
+    llamados: number,
+    activo: Boolean
+}
+
 
 export type LoginCredentials = {
     email: string;
