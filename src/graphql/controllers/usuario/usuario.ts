@@ -12,7 +12,7 @@ import { getRepository } from 'typeorm';
 import { Roles as EnumRoles } from 'enums/Roles';
 import { Roles } from 'entities/roles/roles.entity';
 import { sendEmail } from 'utilities/mail';
-import { accountActivateTemplate } from 'mailTemplates/activateAccount.template';
+import { accountActivateTemplate, resetPasswordActivate } from 'mailTemplates/activateAccount.template';
 
 const usuarioController: any = {
   Mutation: {
@@ -71,7 +71,7 @@ const usuarioController: any = {
         );
         newUser.resetPasswordToken = resetPasswordToken;
 
-        await sendEmail(newUser?.email, "Bienvenido a CallSync", accountActivateTemplate(resetPasswordToken, process.env.APP_FRONTEND_URL, `${newUser?.name} ${newUser?.password}`));
+        await sendEmail(newUser?.email, "Bienvenido a CallSync", accountActivateTemplate(resetPasswordToken, process.env.APP_FRONTEND_URL, `${newUser?.name} ${newUser?.lastName}`));
 
         const userCreation = await getRepository(Usuario).save(newUser);
         if (userCreation.id) {
@@ -173,6 +173,31 @@ const usuarioController: any = {
         return dataToReturn as UsuarioInfo;
       } catch (e) {
         throw new Error(e?.message)
+      }
+    },
+    forgetPassword: async (_: any, { info }: { info: { email: string } }) => {
+      try {
+        const userEmail = info?.email;
+        const userInfo = await getRepository(Usuario).findOne({
+          email: userEmail,
+        });
+        if (!userInfo?.id || !userInfo) {
+          throw new Error("Error al restablecer la password");
+        }
+        const resetPasswordToken = await Encryption.generateJWT(
+          'email',
+          userInfo?.email,
+        );
+        userInfo.resetPasswordToken = resetPasswordToken;
+        await getRepository(Usuario).save(userInfo);
+        await sendEmail(userInfo?.email, "Restablece tu contraseña", resetPasswordActivate(resetPasswordToken, process.env.APP_FRONTEND_URL, `${userInfo?.name} ${userInfo?.lastName}`));
+
+        return {
+          ok: true,
+          message: "Se envio un correo para restablecer la password"
+        }
+      } catch (error) {
+        throw new Error(error?.message || "Error al restablecer la password")
       }
     },
     resetPassword: async (

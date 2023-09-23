@@ -39,6 +39,10 @@ const usuarioSchema = gql`
         password: String!
     }
 
+    input ForgetPasswordInput {
+        email: String!
+    }
+
     type UsuarioInfo {
         email: String!
         name: String!
@@ -61,6 +65,7 @@ const usuarioSchema = gql`
         login(data: LoginCredentials!): AuthUserResponse
         checkToken(token: String): UsuarioInfo
         resetPassword(info: ResetPasswordInput!): AuthUserResponse
+        forgetPassword(info: ForgetPasswordInput!): AuthUserResponse
     }
 `;
 
