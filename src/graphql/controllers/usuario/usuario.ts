@@ -51,6 +51,10 @@ const usuarioController: any = {
           newUser.password = '';
         }
 
+        if (data?.roles?.length === 0) {
+          throw new Error("El usuario debe tener un rol");
+        }
+
         //set user roles
         const newUserRoles: Roles[] = [];
         const allRpomises = Promise.all(
