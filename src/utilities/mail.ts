@@ -20,7 +20,7 @@ export const sendEmail = (
     html: content,
   };
 
-  transporter.sendMail(mailOptions, (error, info) => {
+  transporter.sendMail(mailOptions, (error: any, info: any) => {
     if (error) {
       console.error('Error al enviar el correo electrónico:', error);
     } else {
