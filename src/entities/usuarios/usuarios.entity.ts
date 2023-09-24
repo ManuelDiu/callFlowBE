@@ -18,6 +18,10 @@ export class Usuario extends BaseEntity {
   @Unique(['email'])
   email: string;
 
+  @Column({ length: 20, nullable: false })
+  @Unique(['documento'])
+  documento: string;
+
   @Column({ length: 100, nullable: false, select: true })
   password: string;
 

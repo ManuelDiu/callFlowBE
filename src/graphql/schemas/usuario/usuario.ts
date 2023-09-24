@@ -13,7 +13,7 @@ const usuarioSchema = gql`
         Suroeste
         Norte
         Este
-        Centro Sur
+        Centro_Sur
     }
 
     input LoginCredentials {
@@ -31,6 +31,7 @@ const usuarioSchema = gql`
         roles: [UserRole]!
         itr: ITR!
         telefono: String
+        documento: String!
     }
 
     input ResetPasswordInput {
@@ -56,6 +57,7 @@ const usuarioSchema = gql`
 
 
     type UserList {
+        id: Int
         email: String!
         name: String!
         imageUrl: String
@@ -65,12 +67,36 @@ const usuarioSchema = gql`
         telefono: String
         llamados: Int
         activo: Boolean
+        documento: String
+        biografia: String
     }
+
+    input UpdateUser {
+        id: Int
+        email: String!
+        name: String!
+        imageUrl: String
+        lastName: String
+        roles: [UserRole]!
+        itr: ITR!
+        telefono: String
+        llamados: Int
+        activo: Boolean
+        documento: String
+        biografia: String
+    }
+
 
     type AuthUserResponse {
         ok: Boolean!
         message: String!
         token: String
+    }
+
+    type Message {
+        id: ID!
+        name: String!
+        content: String
     }
 
     type Mutation {
@@ -79,11 +105,21 @@ const usuarioSchema = gql`
         checkToken(token: String): UsuarioInfo
         resetPassword(info: ResetPasswordInput!): AuthUserResponse
         forgetPassword(info: ForgetPasswordInput!): AuthUserResponse
+        testCreateUser: String
+        disabledUser(uid: Int): AuthUserResponse
+        updateUser(info: UpdateUser): AuthUserResponse
+
     }
 
     type Query {
         listUsuarios: [UserList]
     }
+
+
+    type Subscription {
+        userCreated: UserList
+    }
+
 `;
 
 

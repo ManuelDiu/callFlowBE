@@ -12,6 +12,7 @@ export type CreateUserType = {
     roles: Roles[],
     itr: ITR,
     telefono: string,
+    documento: string,
 }
 
 export type UsuarioInfo = {
@@ -26,6 +27,7 @@ export type UsuarioInfo = {
 }
 
 export type UserList = {
+    id: number;
     email: string;
     name?: string;
     lastName?: string,
@@ -35,6 +37,8 @@ export type UserList = {
     telefono: string,
     llamados: number,
     activo: Boolean
+    documento: string,
+    biografia: string
 }
 
 
