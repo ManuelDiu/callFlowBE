@@ -1,6 +1,9 @@
 import Encryption from '../../../utilities/encryption.utility';
 import { Usuario } from '../../../entities/usuarios/usuarios.entity';
-import { DEFAULT_USER_IMAGE } from '/src/utilities/user';
+import {
+  DEFAULT_USER_IMAGE,
+  formatUserToList,
+} from '/src/utilities/user';
 import {
   CreateUserResponse,
   CreateUserType,
@@ -18,6 +21,9 @@ import {
   resetPasswordActivate,
 } from 'mailTemplates/activateAccount.template';
 import { checkAuth } from 'utilities/checkAuth';
+import { PubSub } from 'graphql-subscriptions';
+
+const pubsub = new PubSub();
 
 const usuarioController: any = {
   Mutation: {
@@ -36,6 +42,7 @@ const usuarioController: any = {
         newUser.name = data?.name;
         newUser.email = data?.email;
         newUser.lastName = data.lastname;
+        newUser.documento = data?.documento;
         newUser.imageUrl =
           data?.image && data?.image !== ''
             ? data?.image
@@ -52,7 +59,7 @@ const usuarioController: any = {
         }
 
         if (data?.roles?.length === 0) {
-          throw new Error("El usuario debe tener un rol");
+          throw new Error('El usuario debe tener un rol');
         }
 
         //set user roles
@@ -92,6 +99,9 @@ const usuarioController: any = {
 
         const userCreation = await getRepository(Usuario).save(newUser);
         if (userCreation.id) {
+          pubsub.publish('List_Users', {
+            userCreated: formatUserToList(userCreation),
+          });
           return {
             ok: true,
             message: 'Usuario creado correctamente',
@@ -120,15 +130,11 @@ const usuarioController: any = {
           email: data?.email,
         });
 
-        console.log('user', user);
-
         if (!user || !user?.id) {
           throw new Error('Credenciales invalidas');
         }
         if (!user?.activo) {
-          throw new Error(
-            'Usuario desactivado, restablece tu password',
-          );
+          throw new Error('Usuario desactivado');
         }
 
         console.log(user?.password);
@@ -277,6 +283,100 @@ const usuarioController: any = {
         };
       }
     },
+    disabledUser: async (
+      _: any,
+      { uid }: { uid: number },
+    ): Promise<CreateUserResponse> => {
+      try {
+        const userInfo = await getRepository(Usuario).findOne(
+          {
+            id: uid,
+          },
+          {
+            relations: ['roles', 'tribunales'],
+          },
+        );
+        if (!userInfo || !userInfo?.id) {
+          throw new Error('Usuario invalido');
+        }
+        userInfo.activo = false;
+        pubsub.publish('List_Users', {
+          userCreated: formatUserToList(userInfo),
+        });
+        await getRepository(Usuario).save(userInfo);
+        return {
+          ok: true,
+          message: 'Usuario desactivado correctamente',
+        } as CreateUserResponse;
+      } catch (e) {
+        return {
+          ok: false,
+          message: e?.message,
+        };
+      }
+    },
+    updateUser: async (
+      _: any,
+      { info }: { info: UserList },
+    ): Promise<CreateUserResponse> => {
+      try {
+        const userInfo = await getRepository(Usuario).findOne(
+          {
+            id: info?.id,
+          },
+          {
+            relations: ['roles', 'tribunales'],
+          },
+        );
+
+        if (!userInfo || !userInfo?.id) {
+          throw new Error('Usuario invalido');
+        }
+
+        userInfo.telefono = info?.telefono;
+
+        userInfo.name = info?.name;
+        userInfo.lastName = info?.lastName;
+        userInfo.documento = info?.documento;
+        if (info?.imageUrl) {
+          userInfo.imageUrl =
+            userInfo?.imageUrl && info?.imageUrl !== ''
+              ? info?.imageUrl
+              : DEFAULT_USER_IMAGE;
+        }
+
+        const newUserRoles: Roles[] = [];
+        const allRpomises = Promise.all(
+          info?.roles?.map(async (item: EnumRoles) => {
+            const rol = await getRepository(Roles).findOne({
+              nombre: item,
+            });
+            newUserRoles?.push(rol);
+          }),
+        );
+        await allRpomises;
+        userInfo.roles = newUserRoles;
+        if (!info?.itr) {
+          throw new Error('El usuario debe seleccionar un ITR');
+        }
+        userInfo.itr = info?.itr;
+        userInfo.biografia = info.biografia || '';
+
+        await getRepository(Usuario).save(userInfo);
+        pubsub.publish('List_Users', {
+          userCreated: formatUserToList(userInfo),
+        });
+        return {
+          ok: true,
+          message: 'Usuario actualizado correctamente',
+        } as CreateUserResponse;
+      } catch (e) {
+        return {
+          ok: false,
+          message: e?.message,
+        };
+      }
+    },
   },
   Query: {
     listUsuarios: async (): Promise<UserList[]> => {
@@ -285,27 +385,19 @@ const usuarioController: any = {
         const usuarios = await getRepository(Usuario).find({
           relations: ['roles', 'tribunales'],
         });
-        console.log("usuarios", usuarios)
         const formatUsers: UserList[] = usuarios.map((user) => {
-          const item: UserList = {
-            email: user?.email,
-            name: user?.name,
-            imageUrl: user?.imageUrl,
-            roles: user?.roles?.map((rol) => (rol?.nombre as EnumRoles)),
-            itr: user?.itr,
-            lastName: user?.lastName,
-            telefono: user?.telefono,
-            llamados: user?.tribunales?.length || 0,
-            activo: user?.activo,
-          };
-          return item;
+          return formatUserToList(user);
         });
 
-        console.log("formatUsers", formatUsers)
         return formatUsers;
       } catch (e) {
         return [];
       }
+    },
+  },
+  Subscription: {
+    userCreated: {
+      subscribe: () => pubsub.asyncIterator(['List_Users']),
     },
   },
 };
