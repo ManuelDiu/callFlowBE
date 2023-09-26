@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn, Unique, OneToMany, ManyToOne, ManyToMany } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, Unique, OneToMany, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
 
 // Entities
 import { BaseEntity } from '../base/base.entity';
@@ -51,6 +51,7 @@ export class Llamado extends BaseEntity {
   postulantes: PostulanteLlamado[];
 
   @ManyToMany(() => Categoria, (cat) => cat.llamados)
+  @JoinTable()
   categorias: Categoria[];
 
   @OneToMany(() => HistorialItem, (e) => e.llamado)

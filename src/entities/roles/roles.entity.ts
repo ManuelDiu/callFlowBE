@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn, Unique, OneToMany, ManyToOne, ManyToMany } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, Unique, OneToMany, ManyToOne, ManyToMany, JoinTable } from 'typeorm';
 
 // Entities
 import { BaseEntity } from '../base/base.entity';
@@ -16,6 +16,7 @@ export class Roles extends BaseEntity {
   nombre: string;
 
   @ManyToMany(() => Usuario, user => user.roles)
+  @JoinTable()
   usuarios: Usuario[];
 
   toJSON() {
