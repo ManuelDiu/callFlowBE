@@ -5,10 +5,14 @@ import {
   UpdateCategoriaInput,
   UpdateCategoryResponse,
   DeleteCategoriaInput,
+  CategoriaListItem,
 } from "types/categoria";
 import { MessageResponse } from "types/response";
 import { getRepository } from "typeorm";
 import { Llamado } from "entities/llamado/llamado.entity";
+import { PubSub } from "graphql-subscriptions";
+
+const pubsub = new PubSub();
 
 const categoriaController: any = {
   Mutation: {
@@ -34,6 +38,16 @@ const categoriaController: any = {
 
         const categoryCreation = await getRepository(Categoria).save(newCat);
         if (categoryCreation.id) {
+          pubsub.publish("List_Categories", {
+            categoryCreated: {
+              categoria: {
+                id: categoryCreation.id,
+                nombre: categoryCreation.nombre,
+                updatedAt: categoryCreation.updatedAt,
+              } as CategoriaListItem,
+              operation: "CREATE",
+            },
+          });
           return {
             ok: true,
             message: "Categoría creada correctamente.",
@@ -59,7 +73,7 @@ const categoriaController: any = {
     ): Promise<UpdateCategoryResponse> => {
       try {
         const category = await getRepository(Categoria).findOne(
-          data.idCategoria
+          data.id
         );
 
         if (!category) {
@@ -69,6 +83,16 @@ const categoriaController: any = {
         category.nombre = data.categoria.nombre;
 
         await getRepository(Categoria).save(category);
+        pubsub.publish("List_Categories", {
+          categoryCreated: {
+            categoria: {
+              id: category.id,
+              nombre: category.nombre,
+              updatedAt: category.updatedAt,
+            } as CategoriaListItem,
+            operation: "UPDATE",
+          },
+        });
         return {
           ok: true,
           message: "Categoría modificada correctamente.",
@@ -91,15 +115,29 @@ const categoriaController: any = {
       }
     ): Promise<MessageResponse> => {
       try {
-        const category = await getRepository(Categoria).findOne(
-          data.idCategoria
-        );
+        const category = await getRepository(Categoria).findOne(data.id);
 
         if (!category) {
           throw new Error("Categoría a eliminar no encontrada.");
         }
 
-        await getRepository(Categoria).delete(data.idCategoria);
+        if (category.llamados) {
+          throw new Error(
+            "No puedes eliminar una categoría que esté asociada al menos a un llamado."
+          );
+        }
+
+        await getRepository(Categoria).delete(data.id);
+        pubsub.publish("List_Categories", {
+          categoryCreated: {
+            categoria: {
+              id: category.id,
+              nombre: category.nombre,
+              updatedAt: category.updatedAt
+            } as CategoriaListItem,
+            operation: "POST",
+          },
+        });
         return {
           ok: true,
           message: "Categoría eliminada correctamente.",
@@ -142,7 +180,7 @@ const categoriaController: any = {
         await getRepository(Llamado).save(llamado);
         return {
           ok: true,
-          message: "Categoría creada correctamente.",
+          message: "Categorías agregadas correctamente.",
         };
       } catch (e) {
         console.log("CreateCategory Error", e);
@@ -151,6 +189,31 @@ const categoriaController: any = {
           message: e?.message,
         };
       }
+    },
+  },
+  Query: {
+    listCategorias: async (): Promise<CategoriaListItem[]> => {
+      try {
+        const categorias = await getRepository(Categoria).find({
+          order: { nombre: "ASC" },
+        });
+        const formattedCats: CategoriaListItem[] = categorias.map((cat) => {
+          const item: CategoriaListItem = {
+            id: cat?.id,
+            nombre: cat?.nombre,
+            updatedAt: cat?.updatedAt,
+          };
+          return item;
+        });
+        return formattedCats;
+      } catch (e) {
+        return [];
+      }
+    },
+  },
+  Subscription: {
+    categoryCreated: {
+      subscribe: () => pubsub.asyncIterator(["List_Categories"]),
     },
   },
 };

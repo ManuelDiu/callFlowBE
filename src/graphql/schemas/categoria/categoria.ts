@@ -1,6 +1,8 @@
 import { gql } from "apollo-server-express";
 
 const categoriaSchema = gql`
+  scalar Date
+
   input CategoriaItem {
     nombre: String!
   }
@@ -21,6 +23,17 @@ const categoriaSchema = gql`
 
   type CategoriaItemOutput {
     nombre: String!
+  }
+
+  type CategoriaListItemOutput {
+    id: Int!
+    nombre: String!
+    updatedAt: Date!
+  }
+
+  type CategorySubOutput {
+    categoria: CategoriaListItemOutput!
+    operation: String!
   }
 
   type UpdateCategoryResponse {
@@ -53,6 +66,17 @@ const categoriaSchema = gql`
     Eliminar una categoría.
     """
     deleteCategory(data: DeleteCategoryInput!): MessageResponse
+  }
+
+  type Query {
+    """
+    Listar categorías.
+    """
+    listCategorias: [CategoriaListItemOutput]
+  }
+
+  type Subscription {
+    categoryCreated: CategorySubOutput
   }
 `;
 
