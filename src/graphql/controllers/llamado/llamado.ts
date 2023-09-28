@@ -13,6 +13,7 @@ import { EstadoLlamadoEnum } from 'enums/EstadoLlamadoEnum';
 import { EstadoPostulanteEnum } from 'enums/EstadoPostulanteEnum';
 import { ITR } from 'enums/ITR';
 import { Roles as EnumRoles } from 'enums/Roles';
+import { PubSub } from 'graphql-subscriptions';
 import { isAdmin } from 'middlewares/permission-handler.middleware';
 import { getRepository } from 'typeorm';
 import {
@@ -21,7 +22,9 @@ import {
   LlamadoList,
 } from 'types/llamados';
 import { checkAuth } from 'utilities/checkAuth';
-import { getProgressOfLlamado } from 'utilities/llamado';
+import { formatLlamadoToList, getProgressOfLlamado } from 'utilities/llamado';
+
+const llamadoSub = new PubSub();
 
 const llamadoController: any = {
   Mutation: {
@@ -90,7 +93,6 @@ const llamadoController: any = {
               EstadoPostulante,
             ).findOne({ nombre: EstadoPostulanteEnum.cumpleRequisito });
             if (postulante) {
-              console.log("si, postulante")
               const postulante_llamado = new PostulanteLlamado();
               postulante_llamado.llamado = newLlamado;
               postulante_llamado.postulante = postulante;
@@ -169,6 +171,15 @@ const llamadoController: any = {
 
         await createEtapas;
 
+        const loadedLlamadoInfo = await getRepository(Llamado).findOne({
+          id: newLlamado?.id,
+        },{
+          relations: ['estadoActual', 'cargo', 'postulantes'],
+        });
+        llamadoSub.publish('List_Llamados', {
+          llamadoCreado: formatLlamadoToList(loadedLlamadoInfo),
+        });
+
         return {
           ok: true,
           message: 'Llamado creado correctamente',
@@ -205,22 +216,17 @@ const llamadoController: any = {
 
       const allLlamadosFormtted =
         llamados?.map((llamado) => {
-          return {
-            id: llamado?.id,
-            nombre: llamado?.nombre,
-            estado: llamado?.estadoActual?.nombre,
-            ultimaModificacion: llamado?.updatedAt?.toString(),
-            ref: llamado?.referencia,
-            cupos: llamado?.cupos,
-            cargo: llamado?.cargo,
-            postulantes: llamado?.postulantes?.length,
-            progreso: getProgressOfLlamado(llamado?.estadoActual),
-          } as LlamadoList;
+          return formatLlamadoToList(llamado);
         }) || [];
 
       return allLlamadosFormtted;
     },
   },
+  Subscription: {
+    llamadoCreado: {
+      subscribe: () => llamadoSub.asyncIterator(["List_Llamados"]),
+    }
+  }
 };
 
 export default llamadoController;
