@@ -9,6 +9,8 @@ import { Usuario } from "entities/usuarios/usuarios.entity";
 // also, this function should be called with await
 export const checkAuth = async (context: any, roles: Roles[] = []) => {
     const headers = context?.headers;
+    console.log(context)
+    console.log("headers is", headers)
     if (roles?.length !== 0) {
         const token = headers?.authorization;
         if (!token || token === "") {

@@ -1,6 +1,5 @@
-import { gql } from "apollo-server-express";
-import { buildSchema } from "graphql";
-
+import { gql } from 'apollo-server-express';
+import { buildSchema } from 'graphql';
 
 const usuarioSchema = gql`
     enum UserRole {
@@ -71,6 +70,13 @@ const usuarioSchema = gql`
         biografia: String
     }
 
+    type PostulanteList {
+        id: Int
+        nombres: String
+        apellidos: String
+        documento: String
+    }
+
     input UpdateUser {
         id: Int
         email: String!
@@ -108,19 +114,19 @@ const usuarioSchema = gql`
         testCreateUser: String
         disabledUser(uid: Int): AuthUserResponse
         updateUser(info: UpdateUser): AuthUserResponse
-
     }
 
     type Query {
         listUsuarios: [UserList]
+        listarSolicitantes: [UserList]
+        listarMiembrosTribunal: [UserList]
+        listarPostulantes: [PostulanteList]
     }
-
 
     type Subscription {
         userCreated: UserList
     }
 
 `;
-
 
 export default usuarioSchema;
