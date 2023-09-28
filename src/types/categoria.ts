@@ -1,14 +1,20 @@
 export type UpdateCategoriaInput = {
-  idCategoria: number;
+  id: number;
   categoria: CategoriaType;
 };
 
 export type DeleteCategoriaInput = {
-  idCategoria: number;
+  id: number;
 };
 
 export type CategoriaType = {
   nombre: string;
+};
+
+export type CategoriaListItem = {
+  id: number;
+  nombre: string;
+  updatedAt: Date;
 };
 
 export type UpdateCategoryResponse = {
