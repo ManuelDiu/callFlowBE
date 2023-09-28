@@ -72,9 +72,7 @@ const categoriaController: any = {
       }
     ): Promise<UpdateCategoryResponse> => {
       try {
-        const category = await getRepository(Categoria).findOne(
-          data.id
-        );
+        const category = await getRepository(Categoria).findOne(data.id);
 
         if (!category) {
           throw new Error("Categoría no encontrada.");
@@ -121,7 +119,13 @@ const categoriaController: any = {
           throw new Error("Categoría a eliminar no encontrada.");
         }
 
-        if (category.llamados) {
+        const foundRelation = await getRepository(Categoria)
+          .createQueryBuilder("categoria")
+          .innerJoin("categoria.llamados", "llamado")
+          .where("categoria.id = :categoriaId", { categoriaId: category.id })
+          .getOne();
+
+        if (foundRelation) {
           throw new Error(
             "No puedes eliminar una categoría que esté asociada al menos a un llamado."
           );
@@ -133,7 +137,7 @@ const categoriaController: any = {
             categoria: {
               id: category.id,
               nombre: category.nombre,
-              updatedAt: category.updatedAt
+              updatedAt: category.updatedAt,
             } as CategoriaListItem,
             operation: "POST",
           },
