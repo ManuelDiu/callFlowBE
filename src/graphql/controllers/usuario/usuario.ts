@@ -22,6 +22,8 @@ import {
 } from 'mailTemplates/activateAccount.template';
 import { checkAuth } from 'utilities/checkAuth';
 import { PubSub } from 'graphql-subscriptions';
+import { PostulanteList } from 'types/posstulante';
+import { Postulante } from 'entities/postulante/postulante.entity';
 
 const pubsub = new PubSub();
 
@@ -379,9 +381,9 @@ const usuarioController: any = {
     },
   },
   Query: {
-    listUsuarios: async (): Promise<UserList[]> => {
+    listUsuarios: async (_: any, __: any, context: any): Promise<UserList[]> => {
       try {
-        await checkAuth([EnumRoles.admin]);
+        await checkAuth(context, [EnumRoles.admin]);
         const usuarios = await getRepository(Usuario).find({
           relations: ['roles', 'tribunales'],
         });
@@ -391,6 +393,56 @@ const usuarioController: any = {
 
         return formatUsers;
       } catch (e) {
+        return [];
+      }
+    },
+    listarSolicitantes: async (_: any, __: any, context: any): Promise<UserList[]> => {
+      try {
+        await checkAuth(context, [EnumRoles.admin]);
+        const usuarios = await getRepository(Usuario)
+          .createQueryBuilder('usuario')
+          .innerJoin('usuario.roles', 'rol')
+          .where('rol.nombre = :nombre', {
+            nombre: EnumRoles.cordinador,
+          })
+          .getMany();
+        const formatUsers: UserList[] = usuarios.map((user) => {
+          return formatUserToList(user);
+        });
+
+        return formatUsers;
+      } catch (e) {
+        throw new Error("Permisos insuficientes")
+        return [];
+      }
+    },
+    listarMiembrosTribunal: async (_: any, __: any, context: any): Promise<UserList[]> => {
+      try {
+        await checkAuth(context, [EnumRoles.admin]);
+        const usuarios = await getRepository(Usuario)
+          .createQueryBuilder('usuario')
+          .innerJoin('usuario.roles', 'rol')
+          .where('rol.nombre = :nombre', {
+            nombre: EnumRoles.tribunal,
+          })
+          .getMany();
+        const formatUsers: UserList[] = usuarios.map((user) => {
+          return formatUserToList(user);
+        });
+
+        return formatUsers;
+      } catch (e) {
+        throw new Error("Permisos insuficientes")
+        return [];
+      }
+    },
+    listarPostulantes: async (_: any, __: any, context: any): Promise<PostulanteList[]> => {
+      try {
+        await checkAuth(context, [EnumRoles.admin]);
+        const postulantes = await getRepository(Postulante).find();
+        return postulantes;
+      } catch (e) {
+        throw new Error("Permisos insuficientes")
         return [];
       }
     },
