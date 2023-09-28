@@ -5,6 +5,8 @@ import {MigrationInterface, QueryRunner, getRepository} from "typeorm";
 import { EstadoPostulante } from "../entities/estadoPostulante/estadoPostulante.entity";
 import { estadoLlamadoSeed } from "../seeds/estadoLlamadoSeed";
 import { EstadoPosibleLlamado } from "../entities/estadoLlamado/estadoLlamado.entity";
+import { Usuario } from "entities/usuarios/usuarios.entity";
+import { usuarioSeed } from "seeds/usuarioSeeder";
 
 export class asddgg1694890399483 implements MigrationInterface {
 
@@ -12,7 +14,7 @@ export class asddgg1694890399483 implements MigrationInterface {
         await getRepository(Roles).save(rolesSeed);
         await getRepository(EstadoPostulante).save(estadoPostulanteSeed);
         await getRepository(EstadoPosibleLlamado).save(estadoLlamadoSeed);
-        estadoLlamadoSeed
+        await getRepository(Usuario).save(usuarioSeed);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {

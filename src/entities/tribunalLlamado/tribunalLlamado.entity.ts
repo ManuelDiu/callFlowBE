@@ -15,7 +15,7 @@ export class TribunalLlamado extends BaseEntity {
   @Column({ nullable: false })
   orden: number;
 
-  @Column({ length: 500, nullable: false })
+  @Column({ length: 500, nullable: true })
   motivoRenuncia: string;
 
   @Column({

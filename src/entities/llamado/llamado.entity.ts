@@ -12,6 +12,8 @@ import { HistorialItem } from '../historialitem/historialitem.entity';
 import { Archivo } from '../archivo/archivo.entity';
 import { ArchivoFirma } from '../archivofirma/archivofirma.entity';
 import { Etapa } from '../etapa/etapa.entity';
+import { Usuario } from 'entities/usuarios/usuarios.entity';
+import { ITR } from 'enums/ITR';
 
 @Entity('llamado', { orderBy: { id: 'DESC' } })
 export class Llamado extends BaseEntity {
@@ -34,6 +36,16 @@ export class Llamado extends BaseEntity {
 
   @Column()
   enviarEmailTodos: boolean;
+
+  @ManyToOne(() => Usuario, (user) => user.llamados)
+  solicitante: Usuario;
+
+  @Column({
+    type: "enum",
+    enum: ITR,
+    nullable: false,
+   })
+  itr: ITR;
   
   @ManyToOne(() => EstadoPosibleLlamado, (estado) => estado.llamados)
   estadoActual: EstadoPosibleLlamado;

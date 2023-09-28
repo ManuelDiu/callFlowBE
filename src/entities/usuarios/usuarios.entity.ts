@@ -7,6 +7,7 @@ import { Roles } from '../roles/roles.entity';
 import { TribunalLlamado } from '../tribunalLlamado/tribunalLlamado.entity';
 import { HistorialItem } from '../historialitem/historialitem.entity';
 import { FirmaEstado } from '../firmaestado/firmaestado.entity';
+import { Llamado } from 'entities/llamado/llamado.entity';
 
 @Entity('usuario', { orderBy: { id: 'DESC' } })
 export class Usuario extends BaseEntity {
@@ -56,6 +57,9 @@ export class Usuario extends BaseEntity {
 
   @OneToMany(() => TribunalLlamado, (tribunal) => tribunal.usuario)
   tribunales: TribunalLlamado[]
+
+  @OneToMany(() => Llamado, (llamado) => llamado.solicitante)
+  llamados: Llamado[]
 
   @OneToMany(() => HistorialItem, (e) => e.usuario)
   historiales: HistorialItem[];

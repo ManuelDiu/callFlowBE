@@ -1,3 +1,4 @@
+import { TipoMiembro } from 'enums/TipoMiembro';
 import { CargoList } from './cargo';
 
 export type LlamadoList = {
@@ -46,8 +47,14 @@ export type LlamadoCreateData = {
   enviarEmailTodos: boolean;
 };
 
+export type TribunalCreate = {
+  id: number;
+  type: TipoMiembro;
+  order: number;
+};
+
 export type LLamaodCreateInput = {
-  tribunales: number[];
+  tribunales: TribunalCreate[];
   postulantes: number[];
   llamadoInfo: LlamadoCreateData;
   etapas: Etapa[];

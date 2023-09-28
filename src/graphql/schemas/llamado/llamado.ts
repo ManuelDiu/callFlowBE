@@ -1,6 +1,11 @@
 import { gql } from "apollo-server-express";
 
 const llamadoSchema = gql`
+     enum TipoMiembro {
+        Titular
+        Suplente
+    }
+
     type LlamadoList {
         id: Int,
         nombre: String
@@ -14,18 +19,22 @@ const llamadoSchema = gql`
     }
 
     input RequisitoCreate {
+        index: Int
         nombre: String!
         puntaje: Int!
         excluyente: Boolean!
     }
 
     input SubetapaCreate {
+        index: Int
         nombre: String!
         puntajeMaximo: Int!
         requisitos: [RequisitoCreate]!
+        subtotal: Int
     }
 
     input EtapaCreate {
+        index: Int
         nombre: String!
         plazoDiasMaximo: Int!
         puntajeMinimo: Int!
@@ -47,8 +56,14 @@ const llamadoSchema = gql`
         enviarEmailTodos: Boolean!
     }
 
+    input TribunalCreate {
+        id: Int!,
+        type: TipoMiembro!
+        order: Int!
+    }
+
     input CreateLlamadoInput {
-        tribunales: [Int]!
+        tribunales: [TribunalCreate]!
         postulantes: [Int]!
         llamadoInfo: LlamadoInfoCreate!
         etapas: [EtapaCreate]!
