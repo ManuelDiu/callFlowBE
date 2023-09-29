@@ -69,13 +69,14 @@ const llamadoSchema = gql`
         etapas: [EtapaCreate]!
     }
 
-    type LlamadoCreateResponse {
+    type LlamadoResponseOk {
         ok: Boolean
         message: String
     }
 
     type Mutation {
-        crearLlamado(info: CreateLlamadoInput): LlamadoCreateResponse
+        crearLlamado(info: CreateLlamadoInput): LlamadoResponseOk
+        deshabilitarLlamados(llamados: [Int]): LlamadoResponseOk
     }
 
     type Subscription {

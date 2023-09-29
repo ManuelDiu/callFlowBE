@@ -22,7 +22,10 @@ import {
   LlamadoList,
 } from 'types/llamados';
 import { checkAuth } from 'utilities/checkAuth';
-import { formatLlamadoToList, getProgressOfLlamado } from 'utilities/llamado';
+import {
+  formatLlamadoToList,
+  getProgressOfLlamado,
+} from 'utilities/llamado';
 
 const llamadoSub = new PubSub();
 
@@ -98,7 +101,9 @@ const llamadoController: any = {
               postulante_llamado.postulante = postulante;
               postulante_llamado.estadoActual = estadoInicial;
               createdPostulantesLlamado?.push(postulante_llamado);
-              await getRepository(PostulanteLlamado).save(postulante_llamado);
+              await getRepository(PostulanteLlamado).save(
+                postulante_llamado,
+              );
             }
           }),
         );
@@ -122,8 +127,10 @@ const llamadoController: any = {
                 tribunal_llamado.usuario = usuario;
                 tribunal_llamado.tipoMiembro = tribunal?.type;
                 tribunal_llamado.orden = tribunal?.order;
-                tribunal_llamado.motivoRenuncia = "";
-                await getRepository(TribunalLlamado).save(tribunal_llamado)
+                tribunal_llamado.motivoRenuncia = '';
+                await getRepository(TribunalLlamado).save(
+                  tribunal_llamado,
+                );
               }
             }
           }),
@@ -171,11 +178,14 @@ const llamadoController: any = {
 
         await createEtapas;
 
-        const loadedLlamadoInfo = await getRepository(Llamado).findOne({
-          id: newLlamado?.id,
-        },{
-          relations: ['estadoActual', 'cargo', 'postulantes'],
-        });
+        const loadedLlamadoInfo = await getRepository(Llamado).findOne(
+          {
+            id: newLlamado?.id,
+          },
+          {
+            relations: ['estadoActual', 'cargo', 'postulantes'],
+          },
+        );
         llamadoSub.publish('List_Llamados', {
           llamadoCreado: formatLlamadoToList(loadedLlamadoInfo),
         });
@@ -195,6 +205,45 @@ const llamadoController: any = {
         return {
           ok: false,
           message: error?.message,
+        };
+      }
+    },
+    deshabilitarLlamados: async (
+      _: any,
+      { llamados }: { llamados: number[] },
+      context: any,
+    ): Promise<LlamadoCreateResponse> => {
+      try {
+        await checkAuth(context, [EnumRoles.admin]);
+
+        const disabledLlamados = Promise.all(
+          llamados?.map(async (llamadoId: number) => {
+            const llamado = await getRepository(Llamado).findOne({
+              id: llamadoId,
+            });
+            const nuevoEstado = await getRepository(
+              EstadoPosibleLlamado,
+            ).findOne({ nombre: EstadoLlamadoEnum.eliminado });
+            if (nuevoEstado && llamado) {
+              llamado.estadoActual = nuevoEstado;
+              await getRepository(Llamado).save(llamado);
+            }
+            const llamadoInfo = formatLlamadoToList(llamado);
+            llamadoSub.publish('List_Llamados', {
+              llamadoCreado: llamadoInfo,
+            });
+          }),
+        );
+        await disabledLlamados;
+
+        return {
+          ok: true,
+          message: 'Llamados deshabilitados correctamente',
+        };
+      } catch (error) {
+        return {
+          ok: false,
+          message: error?.message || 'Error al deshabilitar llamados',
         };
       }
     },
@@ -224,9 +273,9 @@ const llamadoController: any = {
   },
   Subscription: {
     llamadoCreado: {
-      subscribe: () => llamadoSub.asyncIterator(["List_Llamados"]),
-    }
-  }
+      subscribe: () => llamadoSub.asyncIterator(['List_Llamados']),
+    },
+  },
 };
 
 export default llamadoController;
