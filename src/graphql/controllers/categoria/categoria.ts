@@ -11,7 +11,8 @@ import { MessageResponse } from "types/response";
 import { getRepository } from "typeorm";
 import { Llamado } from "entities/llamado/llamado.entity";
 import { PubSub } from "graphql-subscriptions";
-
+import { Roles as EnumRoles } from "enums/Roles";
+import { checkAuth } from "utilities/checkAuth";
 const pubsub = new PubSub();
 
 const categoriaController: any = {
@@ -22,9 +23,11 @@ const categoriaController: any = {
         data,
       }: {
         data: CategoriaType;
-      }
+      },
+      context: any
     ): Promise<MessageResponse> => {
       try {
+        await checkAuth(context, [EnumRoles.admin]);
         // check if category already exists by its name
         const foundCategory = await getRepository(Categoria).findOne({
           nombre: data.nombre,
@@ -69,9 +72,11 @@ const categoriaController: any = {
         data,
       }: {
         data: UpdateCategoriaInput;
-      }
+      },
+      context: any
     ): Promise<UpdateCategoryResponse> => {
       try {
+        await checkAuth(context, [EnumRoles.admin]);
         const category = await getRepository(Categoria).findOne(data.id);
 
         if (!category) {
@@ -110,9 +115,11 @@ const categoriaController: any = {
         data,
       }: {
         data: DeleteCategoriaInput;
-      }
+      },
+      context: any
     ): Promise<MessageResponse> => {
       try {
+        await checkAuth(context, [EnumRoles.admin]);
         const category = await getRepository(Categoria).findOne(data.id);
 
         if (!category) {
@@ -160,9 +167,11 @@ const categoriaController: any = {
         data,
       }: {
         data: AddCategoriesToLlamadoType;
-      }
+      },
+      context: any
     ): Promise<MessageResponse> => {
       try {
+        await checkAuth(context, [EnumRoles.admin]);
         const existingCategories = [];
         for (const currCat of data.categorias) {
           const category = await getRepository(Categoria).findOne({
@@ -196,8 +205,17 @@ const categoriaController: any = {
     },
   },
   Query: {
-    listCategorias: async (): Promise<CategoriaListItem[]> => {
+    listCategorias: async (
+      _: any,
+      __: any,
+      context: any
+    ): Promise<CategoriaListItem[]> => {
       try {
+        await checkAuth(context, [
+          EnumRoles.admin,
+          EnumRoles.tribunal,
+          EnumRoles.cordinador,
+        ]);
         const categorias = await getRepository(Categoria).find({
           order: { nombre: "ASC" },
         });
