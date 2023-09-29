@@ -67,6 +67,7 @@ const llamadoSchema = gql`
         postulantes: [Int]!
         llamadoInfo: LlamadoInfoCreate!
         etapas: [EtapaCreate]!
+        categorias: [Int]!
     }
 
     type LlamadoResponseOk {

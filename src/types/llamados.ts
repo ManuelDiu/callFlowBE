@@ -58,6 +58,7 @@ export type LLamaodCreateInput = {
   postulantes: number[];
   llamadoInfo: LlamadoCreateData;
   etapas: Etapa[];
+  categorias: number[];
 };
 
 export type LlamadoCreateResponse = {

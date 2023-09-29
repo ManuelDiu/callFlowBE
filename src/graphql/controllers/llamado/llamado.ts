@@ -1,4 +1,5 @@
 import { Cargo } from 'entities/cargo/cargo.entity';
+import { Categoria } from 'entities/categoria/categoria.entity';
 import { EstadoPosibleLlamado } from 'entities/estadoLlamado/estadoLlamado.entity';
 import { EstadoPostulante } from 'entities/estadoPostulante/estadoPostulante.entity';
 import { Etapa } from 'entities/etapa/etapa.entity';
@@ -43,7 +44,7 @@ const llamadoController: any = {
     ): Promise<LlamadoCreateResponse> => {
       try {
         await checkAuth(context, [EnumRoles.admin]);
-        const { etapas, llamadoInfo, tribunales, postulantes } = info;
+        const { etapas, llamadoInfo, tribunales, postulantes, categorias } = info;
         const existsLlamadoWithSameName = await getRepository(
           Llamado,
         ).findOne({
@@ -177,6 +178,20 @@ const llamadoController: any = {
         );
 
         await createEtapas;
+
+        let categoriasToInsert: Categoria[] = [];
+        const categoriasCreate = Promise.all(categorias?.map(async (categoryId) => {
+            const categoria = await getRepository(Categoria).findOne({id: categoryId});
+            console.log("categoria", categoria)
+            if (categoria) {
+              categoriasToInsert?.push(categoria);
+            }
+        }));
+        await categoriasCreate;
+        console.log("categoriasToInsert", categoriasToInsert);
+        llamado.categorias = categoriasToInsert;
+        await getRepository(Llamado).save(llamado);
+
 
         const loadedLlamadoInfo = await getRepository(Llamado).findOne(
           {
