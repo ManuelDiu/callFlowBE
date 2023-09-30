@@ -4,6 +4,8 @@ import categoriaController from './controllers/categoria/categoria';
 import tipoArchivoController from './controllers/tipoArchivo/tipoArchivo';
 import cargoController from './controllers/cargo/cargo';
 import postulanteController from './controllers/postulante/postulante';
+import { templateController } from './controllers/template/template';
+
 interface TestUserInput {
   name: string;
 }
@@ -15,7 +17,8 @@ const controller = {
     ...categoriaController?.Mutation,
     ...tipoArchivoController?.Mutation,
     ...cargoController?.Mutation,
-    ...postulanteController?.Mutation
+    ...postulanteController?.Mutation,
+    ...templateController?.Mutation,
   },
   Query: {
     ...llamadoController?.Query,
@@ -23,16 +26,17 @@ const controller = {
     ...categoriaController?.Query,
     ...tipoArchivoController?.Query,
     ...cargoController?.Query,
-    ...postulanteController?.Query
+    ...postulanteController?.Query,
+    ...templateController?.Query,
   },
   Subscription: {
     ...llamadoController?.Subscription,
     ...usuarioController?.Subscription,
     ...categoriaController?.Subscription,
-    ...categoriaController?.Subscription,
     ...tipoArchivoController?.Subscription,
     ...cargoController?.Subscription,
-    ...postulanteController?.Subscription
+    ...postulanteController?.Subscription,
+    ...templateController?.Subscription,
   },
 };
 

@@ -20,6 +20,12 @@ export class Template extends BaseEntity {
   @Unique(["nombre"])
   nombre: string;
 
+  @Column({ length: 100, nullable: false })
+  color: string;
+
+  @Column({ nullable: false, default: true })
+  activo: boolean;
+
   @OneToMany(() => Etapa, (e) => e.template)
   etapa: Etapa[];
 
