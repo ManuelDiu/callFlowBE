@@ -2,13 +2,15 @@ import { MessageResponse } from "types/response";
 import { getRepository } from "typeorm";
 import { PubSub } from "graphql-subscriptions";
 import {
-    DeleteTipoArchivoInput,
+  DeleteTipoArchivoInput,
   TipoArchivoListItem,
   TipoArchivoType,
   UpdateTipoArchivoInput,
   UpdateTipoArchivoResponse,
 } from "types/tipoArchivo";
+import { Roles as EnumRoles } from "enums/Roles";
 import { TipoArchivo } from "entities/tipoArchivo/tipoArchivo.entity";
+import { checkAuth } from "utilities/checkAuth";
 
 const pubsub = new PubSub();
 
@@ -20,9 +22,11 @@ const tipoArchivoController: any = {
         data,
       }: {
         data: TipoArchivoType;
-      }
+      },
+      context: any
     ): Promise<MessageResponse> => {
       try {
+        await checkAuth(context, [EnumRoles.admin]);
         // check if TArch already exists by its name
         const foundTA = await getRepository(TipoArchivo).findOne({
           nombre: data.nombre,
@@ -71,9 +75,11 @@ const tipoArchivoController: any = {
         data,
       }: {
         data: UpdateTipoArchivoInput;
-      }
+      },
+      context: any
     ): Promise<UpdateTipoArchivoResponse> => {
       try {
+        await checkAuth(context, [EnumRoles.admin]);
         const foundTA = await getRepository(TipoArchivo).findOne(data.id);
 
         if (!foundTA) {
@@ -114,9 +120,11 @@ const tipoArchivoController: any = {
         data,
       }: {
         data: DeleteTipoArchivoInput;
-      }
+      },
+      context: any
     ): Promise<MessageResponse> => {
       try {
+        await checkAuth(context, [EnumRoles.admin]);
         const foundTA = await getRepository(TipoArchivo).findOne(data.id);
 
         if (!foundTA) {
@@ -137,7 +145,7 @@ const tipoArchivoController: any = {
 
         await getRepository(TipoArchivo).delete(data.id);
         pubsub.publish("List_TipoArchivo", {
-            tipoArchivoCreated: {
+          tipoArchivoCreated: {
             tipoArchivo: {
               id: foundTA.id,
               nombre: foundTA.nombre,
@@ -161,8 +169,13 @@ const tipoArchivoController: any = {
     },
   },
   Query: {
-    listTiposArchivo: async (): Promise<TipoArchivoListItem[]> => {
+    listTiposArchivo: async (
+      _: any,
+      __: any,
+      context: any
+    ): Promise<TipoArchivoListItem[]> => {
       try {
+        await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal, EnumRoles.cordinador]);
         const tiposArchivo = await getRepository(TipoArchivo).find({
           order: { nombre: "ASC" },
         });
