@@ -36,6 +36,7 @@ const tipoArchivoSchema = gql`
 
   type UpdateTipoArchivoResponse {
     ok: Boolean!
+    message: String
     tipoArchivo: TipoArchivoItemOutput
   }
 

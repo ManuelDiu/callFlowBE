@@ -38,6 +38,7 @@ const categoriaSchema = gql`
 
   type UpdateCategoryResponse {
     ok: Boolean
+    message: String
     categoria: CategoriaItemOutput
   }
 

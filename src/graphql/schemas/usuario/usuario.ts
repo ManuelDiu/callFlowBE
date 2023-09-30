@@ -70,13 +70,6 @@ const usuarioSchema = gql`
         biografia: String
     }
 
-    type PostulanteList {
-        id: Int
-        nombres: String
-        apellidos: String
-        documento: String
-    }
-
     input UpdateUser {
         id: Int
         email: String!
@@ -120,7 +113,6 @@ const usuarioSchema = gql`
         listUsuarios: [UserList]
         listarSolicitantes: [UserList]
         listarMiembrosTribunal: [UserList]
-        listarPostulantes: [PostulanteList]
     }
 
     type Subscription {

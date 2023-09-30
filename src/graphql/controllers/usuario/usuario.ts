@@ -436,16 +436,6 @@ const usuarioController: any = {
         return [];
       }
     },
-    listarPostulantes: async (_: any, __: any, context: any): Promise<PostulanteList[]> => {
-      try {
-        await checkAuth(context, [EnumRoles.admin]);
-        const postulantes = await getRepository(Postulante).find();
-        return postulantes;
-      } catch (e) {
-        throw new Error("Permisos insuficientes")
-        return [];
-      }
-    },
   },
   Subscription: {
     userCreated: {
