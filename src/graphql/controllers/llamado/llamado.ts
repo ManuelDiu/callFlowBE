@@ -1,3 +1,4 @@
+import { Archivo } from 'entities/archivo/archivo.entity';
 import { Cargo } from 'entities/cargo/cargo.entity';
 import { Categoria } from 'entities/categoria/categoria.entity';
 import { EstadoPosibleLlamado } from 'entities/estadoLlamado/estadoLlamado.entity';
@@ -8,6 +9,7 @@ import { Postulante } from 'entities/postulante/postulante.entity';
 import { PostulanteLlamado } from 'entities/postulanteLlamado/postulanteLlamado.entity';
 import { Requisito } from 'entities/requisito/requisito.entity';
 import { Subetapa } from 'entities/subetapa/subetapa.entity';
+import { TipoArchivo } from 'entities/tipoArchivo/tipoArchivo.entity';
 import { TribunalLlamado } from 'entities/tribunalLlamado/tribunalLlamado.entity';
 import { Usuario } from 'entities/usuarios/usuarios.entity';
 import { EstadoLlamadoEnum } from 'enums/EstadoLlamadoEnum';
@@ -18,6 +20,7 @@ import { PubSub } from 'graphql-subscriptions';
 import { isAdmin } from 'middlewares/permission-handler.middleware';
 import { getRepository } from 'typeorm';
 import {
+  AddFileToLlamado,
   LLamaodCreateInput,
   LlamadoCreateResponse,
   LlamadoList,
@@ -25,7 +28,6 @@ import {
 import { checkAuth } from 'utilities/checkAuth';
 import {
   formatLlamadoToList,
-  getProgressOfLlamado,
 } from 'utilities/llamado';
 
 const llamadoSub = new PubSub();
@@ -284,6 +286,24 @@ const llamadoController: any = {
         }) || [];
 
       return allLlamadosFormtted;
+    },
+    getLlamadoById: async (_: any, { llamadoId } : { llamadoId: number }, context: any) => {
+      try {
+        await checkAuth(context, [EnumRoles.admin]);
+        const llamadoInfo = await getRepository(Llamado).findOne({ id: llamadoId }, {
+          relations: ['etapas', 'etapaActual' , 'cargo', 'solicitante', 'etapas.subetapas', 'etapas.subetapas.requisitos', 'categorias', 'postulantes', 'postulantes.postulante', 'miembrosTribunal', 'miembrosTribunal.usuario', 'historiales', 'archivos', 'archivos.tipoArchivo', 'archivosFirma', 'estadoActual']
+        });
+        if (!llamadoInfo) {
+          throw new Error("No existe el llamado");
+        }
+        console.log("postulantes", llamadoInfo?.postulantes)
+        return {
+          ...llamadoInfo,
+          etapaUpdated: llamadoInfo?.etapaUpdated?.toString(),
+        };
+      } catch (error) {
+        throw error;
+      }
     },
   },
   Subscription: {

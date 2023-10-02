@@ -18,6 +18,9 @@ export class Archivo extends BaseEntity {
   @Column({ length: 1000, nullable: false })
   url: string;
 
+  @Column({ length: 100, nullable: true })
+  extension: string;
+
   @ManyToOne(() => Llamado, (l) => l.archivos)
   llamado: Llamado;
 
