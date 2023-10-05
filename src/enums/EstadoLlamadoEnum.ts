@@ -1,5 +1,5 @@
 export enum EstadoLlamadoEnum {
-    creado = "",
+    creado = "Creado",
     enRelevamiento = "Agregando Informacion",
     listoParaEstudioMerito = "Listo para estudio de meritos",
     enEstudioMerito = "En estudio de merito",

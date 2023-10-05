@@ -59,6 +59,9 @@ export class Llamado extends BaseEntity {
   @ManyToOne(() => Cargo, (cargo) => cargo.llamados)
   cargo: Cargo;
 
+  @Column({ nullable: true })
+  etapaUpdated: Date;
+
   @OneToMany(() => PostulanteLlamado, (postLlamado) => postLlamado.llamado)
   postulantes: PostulanteLlamado[];
 
@@ -77,6 +80,9 @@ export class Llamado extends BaseEntity {
 
   @OneToMany(() => Etapa, (e) => e.llamado)
   etapas: Etapa[];
+
+  @ManyToOne(() => Etapa, (e) => e.llamados)
+  etapaActual: Etapa[];
 
   toJSON() {
     delete this.id;

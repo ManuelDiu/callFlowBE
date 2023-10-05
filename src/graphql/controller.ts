@@ -5,6 +5,7 @@ import tipoArchivoController from './controllers/tipoArchivo/tipoArchivo';
 import cargoController from './controllers/cargo/cargo';
 import postulanteController from './controllers/postulante/postulante';
 import { templateController } from './controllers/template/template';
+import archivoController from './controllers/archivo/archivo';
 
 interface TestUserInput {
   name: string;
@@ -19,6 +20,7 @@ const controller = {
     ...cargoController?.Mutation,
     ...postulanteController?.Mutation,
     ...templateController?.Mutation,
+    ...archivoController?.Mutation,
   },
   Query: {
     ...llamadoController?.Query,
@@ -28,6 +30,7 @@ const controller = {
     ...cargoController?.Query,
     ...postulanteController?.Query,
     ...templateController?.Query,
+    ...archivoController?.Query,
   },
   Subscription: {
     ...llamadoController?.Subscription,
@@ -37,6 +40,7 @@ const controller = {
     ...cargoController?.Subscription,
     ...postulanteController?.Subscription,
     ...templateController?.Subscription,
+    ...archivoController?.Subscription,
   },
 };
 

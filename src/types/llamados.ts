@@ -65,3 +65,11 @@ export type LlamadoCreateResponse = {
   ok: boolean;
   message: string;
 };
+
+export type AddFileToLlamado = {
+  nombre: string;
+  url: string;
+  extension: string;
+  tipoArchivo: number;
+  llamadoId: number;
+};

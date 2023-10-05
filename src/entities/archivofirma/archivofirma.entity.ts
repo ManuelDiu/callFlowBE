@@ -29,6 +29,9 @@ export class ArchivoFirma extends BaseEntity {
   @Column({ length: 1000, nullable: false })
   urlOriginal: string;
 
+  @Column({ length: 100, nullable: true })
+  extension: string;
+
   @Column({
     type: 'enum',
     enum: TipoArchivoFirma,

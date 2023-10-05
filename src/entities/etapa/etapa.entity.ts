@@ -1,4 +1,10 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 // Entities
 import { BaseEntity } from '../base/base.entity';
@@ -9,7 +15,6 @@ import { Llamado } from '../llamado/llamado.entity';
 
 @Entity('etapa', { orderBy: { id: 'DESC' } })
 export class Etapa extends BaseEntity {
-
   @PrimaryGeneratedColumn({ type: 'int' })
   id: number;
 
@@ -37,9 +42,10 @@ export class Etapa extends BaseEntity {
   @ManyToOne(() => Llamado, (e) => e.etapas)
   llamado: Llamado;
 
+  @OneToMany(() => Llamado, (e) => e.etapaActual)
+  llamados: Llamado;
 
   toJSON() {
     return this;
   }
-
 }
