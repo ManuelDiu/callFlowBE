@@ -1,6 +1,20 @@
+import { EstadoPostulante } from "entities/estadoPostulante/estadoPostulante.entity";
+import { EstadoPostulanteEnum } from "enums/EstadoPostulanteEnum";
+
 export type UpdatePostulanteInput = {
   id: number;
   postulante: PostulanteType;
+};
+
+export type InfoPostulanteEnLlamadoInput = {
+  llamadoId: number;
+  postulanteId: number;
+};
+
+export type CambiarEstadoPostulanteLlamadoInput = {
+  llamadoId: number;
+  postulanteId: number;
+  nuevoEstado: EstadoPostulanteEnum;
 };
 
 export type DeletePostulanteInput = {

@@ -31,4 +31,31 @@ export const usuarioSeed = [
       },
     ],
   },
+  {
+    email: 'mandiu003@gmail.com',
+    documento: '48795687',
+    password:
+      '$2b$10$w/VuEea3u1TlZj0cxMHhJuaq47LAMC7Oko2flyJ5fCgwLv7UihJPq',
+    name: 'Manuel',
+    lastName: 'Diu',
+    biografia: 'Esta es mi bio!!',
+    imageUrl: DEFAULT_USER_IMAGE,
+    telefono: "091321609",
+    activo: true,
+    itr: ITR.suroeste,
+    roles: [
+      {
+        id: 1,
+        nombre: Roles.admin,
+      },
+      {
+        id: 2,
+        nombre: Roles.tribunal,
+      },
+      {
+        id: 3,
+        nombre: Roles.cordinador,
+      },
+    ],
+  },
 ];

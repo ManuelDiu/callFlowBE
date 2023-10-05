@@ -101,7 +101,7 @@ const usuarioSchema = gql`
     type Mutation {
         createUser(data: CrearUsuario!): AuthUserResponse
         login(data: LoginCredentials!): AuthUserResponse
-        checkToken(token: String): UsuarioInfo
+        checkToken(token: String): UserList
         resetPassword(info: ResetPasswordInput!): AuthUserResponse
         forgetPassword(info: ForgetPasswordInput!): AuthUserResponse
         testCreateUser: String

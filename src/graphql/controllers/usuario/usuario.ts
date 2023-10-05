@@ -173,7 +173,7 @@ const usuarioController: any = {
       }: {
         token: string;
       },
-    ): Promise<UsuarioInfo> => {
+    ): Promise<UserList> => {
       try {
         const info = await Encryption.verifyJWT(token);
         if (!info || !info?.data?.uid) {
@@ -195,7 +195,7 @@ const usuarioController: any = {
           ...userInfo.toJSON(),
           roles: formatRoles,
         } as any;
-        return dataToReturn as UsuarioInfo;
+        return dataToReturn as UserList;
       } catch (e) {
         throw new Error(e?.message);
       }

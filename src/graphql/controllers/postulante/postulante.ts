@@ -5,12 +5,16 @@ import {
   UpdatePostulanteInput,
   UpdatePostulanteResponse,
   DeletePostulanteInput,
+  CambiarEstadoPostulanteLlamadoInput,
+  InfoPostulanteEnLlamadoInput,
 } from "types/posstulante";
 import { MessageResponse } from "types/response";
 import { getRepository } from "typeorm";
 import { PubSub } from "graphql-subscriptions";
 import { Roles as EnumRoles } from "enums/Roles";
 import { checkAuth } from "utilities/checkAuth";
+import { PostulanteLlamado } from "entities/postulanteLlamado/postulanteLlamado.entity";
+import { EstadoPostulante } from "entities/estadoPostulante/estadoPostulante.entity";
 
 const pubsub = new PubSub();
 
@@ -171,6 +175,65 @@ const postulanteController: any = {
         };
       }
     },
+    cambiarEstadoPostulanteLlamado: async (
+      _: any,
+      {
+        data,
+      }: {
+        data: CambiarEstadoPostulanteLlamadoInput;
+      },
+      context: any
+    ): Promise<MessageResponse> => {
+      try {
+        await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal]);
+        const postulLlamado = await getRepository(PostulanteLlamado)
+          .createQueryBuilder("postllamado")
+          .innerJoin("postllamado.postulante", "post")
+          .innerJoin("postllamado.llamado", "llamado")
+          .where("post.id = :postId", { postId: data.postulanteId })
+          .andWhere("llamado.id = :llamadoId", { llamadoId: data.llamadoId })
+          .getOne();
+
+        if (!postulLlamado) {
+          throw new Error("Postulante en llamado no encontrado.");
+        }
+        console.log(postulLlamado);
+
+        const nuevoEstado = await getRepository(EstadoPostulante).findOne({
+          nombre: data?.nuevoEstado,
+        });
+
+        if (!nuevoEstado) {
+          throw new Error("Estado posible de postulante no encontrado.");
+        }
+
+        postulLlamado.estadoActual = nuevoEstado;
+
+        await getRepository(PostulanteLlamado).save(postulLlamado);
+        /* pubsub.publish("List_Postulantes", {
+          postulanteCreated: {
+            postulante: {
+              id: postulante.id,
+              nombres: postulante.nombres,
+              apellidos: postulante.apellidos,
+              documento: postulante.documento,
+              updatedAt: postulante.updatedAt,
+            } as PostulanteList,
+            operation: "UPDATE",
+          },
+        }); */
+        return {
+          ok: true,
+          message: "Cambio de estado de postulante exitoso.",
+        };
+      } catch (e) {
+        console.log("ChangePostulanteStateInLlamado Error", e);
+        return {
+          ok: false,
+          message: e?.message,
+        };
+      }
+    },
   },
   Query: {
     listarPostulantes: async (
@@ -183,19 +246,53 @@ const postulanteController: any = {
         const postulantes = await getRepository(Postulante).find({
           order: { nombres: "ASC" },
         });
-        const formattedPostulantes: PostulanteList[] = postulantes.map((postulante) => {
-          const item: PostulanteList = {
-            id: postulante?.id,
-            nombres: postulante?.nombres,
-            apellidos: postulante?.apellidos,
-            documento: postulante?.documento,
-            updatedAt: postulante?.updatedAt,
-          };
-          return item;
-        });
+        const formattedPostulantes: PostulanteList[] = postulantes.map(
+          (postulante) => {
+            const item: PostulanteList = {
+              id: postulante?.id,
+              nombres: postulante?.nombres,
+              apellidos: postulante?.apellidos,
+              documento: postulante?.documento,
+              updatedAt: postulante?.updatedAt,
+            };
+            return item;
+          }
+        );
         return formattedPostulantes;
       } catch (e) {
         return [];
+      }
+    },
+    infoPostulanteEnLlamado: async (
+      _: any,
+      {
+        postulanteId,
+        llamadoId,
+      }: {
+        postulanteId: number;
+        llamadoId: number;
+      },
+      context: any
+    ) => {
+      try {
+        await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal]);
+        const postulLlamado = await getRepository(PostulanteLlamado).findOne({
+          where: {
+            postulante: { id: postulanteId },
+            llamado: { id: llamadoId },
+          },
+          relations: ["postulante", "llamado", "llamado.cargo", "archivos", "archivos.tipoArchivo", "estadoActual"],
+        });
+
+        if (!postulLlamado) {
+          throw new Error("Postulante en llamado no encontrado.");
+        }
+        console.log("PostulanteLlamado", postulLlamado);
+
+        return postulLlamado;
+      } catch (e) {
+        console.log("ChangePostulanteStateInLlamado Error", e);
+        return null;
       }
     },
   },
