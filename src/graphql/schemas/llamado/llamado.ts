@@ -103,7 +103,7 @@ const llamadoSchema = gql`
   }
 
   type LlamadoPostulante {
-    postulante: PostulanteList
+    postulante: PostulanteListItemOutput
   }
 
   input AddFileLlamadoInput {

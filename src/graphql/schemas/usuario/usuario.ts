@@ -70,13 +70,6 @@ const usuarioSchema = gql`
         biografia: String
     }
 
-    type PostulanteList {
-        id: Int
-        nombres: String
-        apellidos: String
-        documento: String
-    }
-
     input UpdateUser {
         id: Int
         email: String!
@@ -108,7 +101,7 @@ const usuarioSchema = gql`
     type Mutation {
         createUser(data: CrearUsuario!): AuthUserResponse
         login(data: LoginCredentials!): AuthUserResponse
-        checkToken(token: String): UsuarioInfo
+        checkToken(token: String): UserList
         resetPassword(info: ResetPasswordInput!): AuthUserResponse
         forgetPassword(info: ForgetPasswordInput!): AuthUserResponse
         testCreateUser: String
@@ -120,7 +113,6 @@ const usuarioSchema = gql`
         listUsuarios: [UserList]
         listarSolicitantes: [UserList]
         listarMiembrosTribunal: [UserList]
-        listarPostulantes: [PostulanteList]
     }
 
     type Subscription {
