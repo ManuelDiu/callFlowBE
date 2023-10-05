@@ -61,6 +61,9 @@ export class Usuario extends BaseEntity {
   @OneToMany(() => Llamado, (llamado) => llamado.solicitante)
   llamados: Llamado[]
 
+  @OneToMany(() => Llamado, (llamado) => llamado.creadoPor)
+  llamadosCreados: Llamado[]
+
   @OneToMany(() => HistorialItem, (e) => e.usuario)
   historiales: HistorialItem[];
 

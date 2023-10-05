@@ -28,6 +28,7 @@ const templateSchema = gql`
   }
 
   type EtapaList {
+    id: Int
     nombre: String
     plazoDias: Int
     puntajeMin: Int

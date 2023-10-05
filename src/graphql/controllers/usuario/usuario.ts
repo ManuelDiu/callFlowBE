@@ -91,7 +91,7 @@ const usuarioController: any = {
 
         await sendEmail(
           newUser?.email,
-          'Bienvenido a CallSync',
+          'Bienvenido a CallFlow',
           accountActivateTemplate(
             resetPasswordToken,
             process.env.APP_FRONTEND_URL,

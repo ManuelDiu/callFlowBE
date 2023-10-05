@@ -23,3 +23,8 @@ export const formatUserToList = (user: Usuario): UserList => {
       };
       return item;
 }
+
+export const userIsAdmin = (usuario: Usuario) => {
+  const existsAdminRole = usuario?.roles?.find((itm) => itm?.nombre === Roles.admin);
+  return existsAdminRole !== undefined;
+}

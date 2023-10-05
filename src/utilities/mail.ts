@@ -28,3 +28,10 @@ export const sendEmail = (
     }
   });
 };
+
+
+
+export const MAIL_COLORS_UTILS = {
+  USER: "#4318FF",
+  ESTADO: "#8EA501",
+}

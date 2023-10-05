@@ -136,6 +136,12 @@ const llamadoSchema = gql`
     etapaActual: EtapaList
   }
 
+  input CambiarEstadoLlamadoInput {
+    llamadoId: Int!
+    etapa: Int!
+    estado: String!
+  }
+
   type Query {
     getLlamadoById(llamadoId: Int): FullLlamadoInfo
   }
@@ -143,6 +149,7 @@ const llamadoSchema = gql`
   type Mutation {
     crearLlamado(info: CreateLlamadoInput): LlamadoResponseOk
     deshabilitarLlamados(llamados: [Int]): LlamadoResponseOk
+    cambiarEstadoLlamado(info: CambiarEstadoLlamadoInput): LlamadoResponseOk
   }
 
   type Subscription {

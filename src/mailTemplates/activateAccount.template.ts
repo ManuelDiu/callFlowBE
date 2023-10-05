@@ -185,7 +185,7 @@ export const accountActivateTemplate = (token: string, frontUrl: string, usernam
 														<tr>
 															<td class="pad" style="padding-bottom:10px;padding-left:15px;padding-right:15px;padding-top:10px;">
 																<div style="color:#ffffff;font-family:Rubik, Trebuchet MS, Helvetica, sans-serif;font-size:22px;line-height:150%;text-align:center;mso-line-height-alt:33px;">
-																	<p style="margin: 0; word-break: break-word;"><strong>Activa tu cuenta CallSync</strong></p>
+																	<p style="margin: 0; word-break: break-word;"><strong>Activa tu cuenta CallFlow</strong></p>
 																</div>
 															</td>
 														</tr>
@@ -195,7 +195,7 @@ export const accountActivateTemplate = (token: string, frontUrl: string, usernam
 															<td class="pad">
 																<div style="color:#ffffff;font-family:Rubik, Trebuchet MS, Helvetica, sans-serif;font-size:14px;line-height:180%;text-align:center;mso-line-height-alt:25.2px;">
 																	<p style="margin: 0;">&nbsp;</p>
-																	<p style="margin: 0;">Querido ${username} ,estamos emocionados de tenerte como parte de nuestra comunidad. Con CallSync, podrás gestionar llamados, postulantes y todo lo relacionado con tu proceso de selección de una manera más eficiente y efectiva</p>
+																	<p style="margin: 0;">Querido ${username} ,estamos emocionados de tenerte como parte de nuestra comunidad. Con CallFlow, podrás gestionar llamados, postulantes y todo lo relacionado con tu proceso de selección de una manera más eficiente y efectiva</p>
 																	<p style="margin: 0;">&nbsp;</p>
 																</div>
 															</td>
@@ -283,7 +283,7 @@ export const accountActivateTemplate = (token: string, frontUrl: string, usernam
 														<tr>
 															<td class="pad">
 																<div style="color:#c9c9c9;font-family:Rubik, Trebuchet MS, Helvetica, sans-serif;font-size:12px;line-height:180%;text-align:center;mso-line-height-alt:21.6px;">
-																	<p style="margin: 0; word-break: break-word;"><span>CallSync 2023 - Todos los derechos reservados</span></p>
+																	<p style="margin: 0; word-break: break-word;"><span>CallFlow 2023 - Todos los derechos reservados</span></p>
 																	<p style="margin: 0; word-break: break-word;"><span><a style="text-decoration: underline; color: #c9c9c9;" title="www.example.com" href="http://www.example.com" target="_blank" rel="noopener">Terms & Conditions</a></span></p>
 																</div>
 															</td>
@@ -636,7 +636,7 @@ export const resetPasswordActivate = (token: string, frontUrl: string, username:
 															<tr>
 																<td class="pad">
 																	<div style="color:#c9c9c9;font-family:Rubik, Trebuchet MS, Helvetica, sans-serif;font-size:12px;line-height:180%;text-align:center;mso-line-height-alt:21.6px;">
-																		<p style="margin: 0; word-break: break-word;"><span>CallSync 2023 - Todos los derechos reservados</span></p>
+																		<p style="margin: 0; word-break: break-word;"><span>CallFlow 2023 - Todos los derechos reservados</span></p>
 																		<p style="margin: 0; word-break: break-word;"><span><a style="text-decoration: underline; color: #c9c9c9;" title="www.example.com" href="http://www.example.com" target="_blank" rel="noopener">Terms & Conditions</a></span></p>
 																	</div>
 																</td>

@@ -43,7 +43,7 @@ export class Etapa extends BaseEntity {
   llamado: Llamado;
 
   @OneToMany(() => Llamado, (e) => e.etapaActual)
-  llamados: Llamado;
+  llamados: Llamado[];
 
   toJSON() {
     return this;

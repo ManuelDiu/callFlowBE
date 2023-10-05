@@ -1,5 +1,6 @@
 import { TipoMiembro } from 'enums/TipoMiembro';
 import { CargoList } from './cargo';
+import { EstadoLlamadoEnum } from 'enums/EstadoLlamadoEnum';
 
 export type LlamadoList = {
   id: number;
@@ -72,4 +73,10 @@ export type AddFileToLlamado = {
   extension: string;
   tipoArchivo: number;
   llamadoId: number;
+};
+
+export type CambiarEstadoLlamadoInput = {
+  llamadoId: number;
+  etapa: number;
+  estado: EstadoLlamadoEnum;
 };

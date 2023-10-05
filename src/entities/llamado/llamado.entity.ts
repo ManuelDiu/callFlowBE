@@ -40,6 +40,9 @@ export class Llamado extends BaseEntity {
   @ManyToOne(() => Usuario, (user) => user.llamados)
   solicitante: Usuario;
 
+  @ManyToOne(() => Usuario, (user) => user.llamadosCreados)
+  creadoPor: Usuario;
+
   @Column({
     type: "enum",
     enum: ITR,
@@ -82,7 +85,7 @@ export class Llamado extends BaseEntity {
   etapas: Etapa[];
 
   @ManyToOne(() => Etapa, (e) => e.llamados)
-  etapaActual: Etapa[];
+  etapaActual: Etapa;
 
   toJSON() {
     delete this.id;

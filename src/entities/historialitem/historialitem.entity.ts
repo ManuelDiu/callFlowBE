@@ -20,7 +20,7 @@ export class HistorialItem extends BaseEntity {
   @ManyToOne(() => Usuario, (e) => e.historiales)
   usuario: Usuario;
 
-  @ManyToOne(() => Usuario, (e) => e.historiales)
+  @ManyToOne(() => Llamado, (e) => e.historiales)
   llamado: Llamado;
   
 
