@@ -1,9 +1,10 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 // Entities
 import { BaseEntity } from '../base/base.entity';
 import { PostulanteLlamado } from '../postulanteLlamado/postulanteLlamado.entity';
 import { EstadoPostulanteEnum } from '../../enums/EstadoPostulanteEnum';
+import { HistorialItem } from 'entities/historialitem/historialitem.entity';
 
 @Entity('cambio', { orderBy: { id: 'DESC' } })
 export class Cambio extends BaseEntity {
@@ -14,15 +15,18 @@ export class Cambio extends BaseEntity {
   @Column()
   cambio: boolean;
 
-  @ManyToOne(() => PostulanteLlamado, (e) => e.cambios)
-  postulante: PostulanteLlamado;
-
   @Column({
     type: "enum",
     enum: EstadoPostulanteEnum,
   })
   nombre: EstadoPostulanteEnum;
 
+  @ManyToOne(() => PostulanteLlamado, (e) => e.cambios)
+  postulante: PostulanteLlamado;
+
+  @OneToMany(() => HistorialItem, (e) => e.cambio)
+  @JoinColumn()
+  cambioItem: HistorialItem;
   
   toJSON() {
     return this;

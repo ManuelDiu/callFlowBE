@@ -80,10 +80,18 @@ const llamadoSchema = gql`
     nombre: String
   }
 
+  type Cambio {
+    id: Int
+    cambio: Boolean
+    nombre: String
+  }
+
   type HistorialLlamado {
     id: Int
     descripcion: String
     usuario: UserList
+    createdAt: String
+    cambio: Cambio
   }
 
   type Archivo {
@@ -149,7 +157,9 @@ const llamadoSchema = gql`
   type Mutation {
     crearLlamado(info: CreateLlamadoInput): LlamadoResponseOk
     deshabilitarLlamados(llamados: [Int]): LlamadoResponseOk
-    cambiarEstadoLlamado(info: CambiarEstadoLlamadoInput): LlamadoResponseOk
+    cambiarEstadoLlamado(
+      info: CambiarEstadoLlamadoInput
+    ): LlamadoResponseOk
   }
 
   type Subscription {

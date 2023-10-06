@@ -221,7 +221,7 @@ const llamadoController: any = {
         const text = `
         El ${
           isAdmin ? 'Admin' : 'Miembro del tribunal'
-        } <span style={{ color: '${MAIL_COLORS_UTILS.USER}' }} >${
+        } <span class="userColor" >${
           loggedUserInfo?.name
         } ${loggedUserInfo?.lastName}</span> creo el llamado '${
           llamado?.nombre
@@ -334,12 +334,12 @@ const llamadoController: any = {
         const text = `
           El ${
             isAdmin ? 'Admin' : 'Miembro del tribunal'
-          } <span style={{ color: '${MAIL_COLORS_UTILS.USER}'}} >${
+          } <span class="userColor" >${
           loggedUserInfo?.name
         } ${loggedUserInfo?.lastName}</span>
-          cambio el estado del llamado '${llamado?.nombre}' a <span style={{ color: '${MAIL_COLORS_UTILS.ESTADO}' }}>${
+          cambio el estado del llamado '${llamado?.nombre}' a <span class="estadoColor">${
             info?.estado
-          }</span> , y la etapa actual a <span style={{ color: '${MAIL_COLORS_UTILS.ESTADO}' }}>${
+          }</span> , y la etapa actual a <span class="estadoColor">${
           etapa?.nombre
         }</span>
         `;
@@ -421,6 +421,7 @@ const llamadoController: any = {
               'miembrosTribunal',
               'miembrosTribunal.usuario',
               'historiales',
+              'historiales.cambio',
               'archivos',
               'archivos.tipoArchivo',
               'archivosFirma',

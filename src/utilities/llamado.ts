@@ -109,6 +109,7 @@ export const generateHistorialItem = async (
         'Cambio Estado Llamado',
         emailToSend,
       );
+      // enviar email a los miembros del tribunal titulares
     }
   } catch (error) {
     throw new Error(error);

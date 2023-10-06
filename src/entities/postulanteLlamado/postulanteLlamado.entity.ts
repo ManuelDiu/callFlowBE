@@ -31,8 +31,9 @@ export class PostulanteLlamado extends BaseEntity {
   @ManyToOne(() => Etapa, (e) => e.postulantes)
   etapa: Etapa;
 
-  @OneToMany(() => Cambio, (a) => a.postulante)
+  @OneToMany(() => Cambio, (e) => e.postulante)
   cambios: Cambio[];
+
 
   @OneToMany(() => Archivo, (a) => a.postulante)
   archivos: Archivo[];
