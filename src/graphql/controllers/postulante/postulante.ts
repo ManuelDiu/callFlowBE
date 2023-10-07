@@ -15,6 +15,10 @@ import { Roles as EnumRoles } from "enums/Roles";
 import { checkAuth } from "utilities/checkAuth";
 import { PostulanteLlamado } from "entities/postulanteLlamado/postulanteLlamado.entity";
 import { EstadoPostulante } from "entities/estadoPostulante/estadoPostulante.entity";
+import { HistorialItem } from "entities/historialitem/historialitem.entity";
+import { Cambio } from "entities/cambio/cambio.entity";
+import { Usuario } from "entities/usuarios/usuarios.entity";
+import { TipoMiembro } from "enums/TipoMiembro";
 
 const pubsub = new PubSub();
 
@@ -185,19 +189,30 @@ const postulanteController: any = {
       context: any
     ): Promise<MessageResponse> => {
       try {
-        await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal]);
-        const postulLlamado = await getRepository(PostulanteLlamado)
-          .createQueryBuilder("postllamado")
-          .innerJoin("postllamado.postulante", "post")
-          .innerJoin("postllamado.llamado", "llamado")
-          .where("post.id = :postId", { postId: data.postulanteId })
-          .andWhere("llamado.id = :llamadoId", { llamadoId: data.llamadoId })
-          .getOne();
+        await checkAuth(context, [EnumRoles.admin]);
+        const postulLlamado = await getRepository(PostulanteLlamado).findOne({
+          where: {
+            postulante: { id: data.postulanteId },
+            llamado: { id: data.llamadoId },
+          },
+          relations: ["postulante", "llamado", "estadoActual"],
+        });
 
         if (!postulLlamado) {
           throw new Error("Postulante en llamado no encontrado.");
         }
-        console.log(postulLlamado);
+        // console.log(postulLlamado);
+
+        const usuarioSolicitante = await getRepository(Usuario).findOne({
+          where: {
+            id: data?.solicitanteId,
+          },
+          relations: ["tribunales", "tribunales.llamado"],
+        });
+
+        if (!usuarioSolicitante) {
+          throw new Error("Usuario solicitante no encontrado.");
+        }
 
         const nuevoEstado = await getRepository(EstadoPostulante).findOne({
           nombre: data?.nuevoEstado,
@@ -207,27 +222,144 @@ const postulanteController: any = {
           throw new Error("Estado posible de postulante no encontrado.");
         }
 
+        if (data.nuevoEstado == postulLlamado.estadoActual.nombre) {
+          throw new Error(
+            "El postulante ya se encuentra en el estado al que se desea cambiar."
+          );
+        }
+
         postulLlamado.estadoActual = nuevoEstado;
 
+        const histItem = new HistorialItem();
+        const newCambio = new Cambio();
+        newCambio.nombre = nuevoEstado.nombre;
+        newCambio.postulante = postulLlamado;
+        newCambio.cambio = true;
+        histItem.cambio = newCambio;
+        histItem.usuario = usuarioSolicitante;
+        histItem.llamado = postulLlamado.llamado;
+        histItem.descripcion = `El administrador (CDP) ${usuarioSolicitante.name} ${usuarioSolicitante?.lastName} cambió el estado del postulante ${postulLlamado.postulante.nombres} ${postulLlamado.postulante?.apellidos} desde ${postulLlamado.estadoActual.nombre} a ${nuevoEstado.nombre}.`;
+
+        await getRepository(Cambio).save(newCambio);
+        await getRepository(HistorialItem).save(histItem);
+
         await getRepository(PostulanteLlamado).save(postulLlamado);
-        /* pubsub.publish("List_Postulantes", {
-          postulanteCreated: {
-            postulante: {
-              id: postulante.id,
-              nombres: postulante.nombres,
-              apellidos: postulante.apellidos,
-              documento: postulante.documento,
-              updatedAt: postulante.updatedAt,
-            } as PostulanteList,
-            operation: "UPDATE",
-          },
-        }); */
         return {
           ok: true,
-          message: "Cambio de estado de postulante exitoso.",
+          message: "Cambio de estado del postulante exitoso.",
         };
       } catch (e) {
         console.log("ChangePostulanteStateInLlamado Error", e);
+        return {
+          ok: false,
+          message: e?.message,
+        };
+      }
+    },
+    cambiarEstadoPostulanteLlamadoTribunal: async (
+      _: any,
+      {
+        data,
+      }: {
+        data: CambiarEstadoPostulanteLlamadoInput;
+      },
+      context: any
+    ): Promise<MessageResponse> => {
+      try {
+        await checkAuth(context, [EnumRoles.tribunal]);
+        const postulLlamado = await getRepository(PostulanteLlamado).findOne({
+          where: {
+            postulante: { id: data.postulanteId },
+            llamado: { id: data.llamadoId },
+          },
+          relations: ["postulante", "llamado", "estadoActual"],
+        });
+
+        if (!postulLlamado) {
+          throw new Error("Postulante en llamado no encontrado.");
+        }
+        // console.log("postLlamado____ ", postulLlamado);
+
+        const foundHistorialItem = await getRepository(HistorialItem).findOne({
+          where: {
+            cambio: { postulante: { postulante: { id: data.postulanteId } } },
+            llamado: { id: data.llamadoId },
+          },
+          relations: [
+            "cambio",
+            "llamado",
+            "cambio.postulante",
+            "cambio.postulante.postulante",
+          ],
+        });
+
+        // console.log("foundHistItem___", foundHistorialItem);
+
+        if (foundHistorialItem) {
+          if (
+            foundHistorialItem.cambio.postulante.postulante.id ===
+              data.postulanteId &&
+            foundHistorialItem.cambio.cambio === null
+          ) {
+            throw new Error(
+              "El postulante ya cuenta con un cambio pendiente a aprobar por CDP."
+            );
+          }
+        }
+
+        const nuevoEstado = await getRepository(EstadoPostulante).findOne({
+          nombre: data?.nuevoEstado,
+        });
+
+        if (!nuevoEstado) {
+          throw new Error("Estado posible de postulante no encontrado.");
+        }
+
+        if (data.nuevoEstado == postulLlamado.estadoActual.nombre) {
+          throw new Error(
+            "El postulante ya se encuentra en el estado al que se desea cambiar."
+          );
+        }
+
+        const usuarioSolicitante = await getRepository(Usuario).findOne({
+          where: {
+            id: data?.solicitanteId,
+          },
+          relations: ["tribunales", "tribunales.llamado"],
+        });
+
+        if (!usuarioSolicitante) {
+          throw new Error("Usuario solicitante no encontrado.");
+        }
+
+        // filtro el array de los tribunales al que el miembro pertenece, por el id del llamado actual.
+        const tribunalLlamadoFiltrado = usuarioSolicitante.tribunales.find(
+          (tribunalLlamado) => tribunalLlamado.llamado.id === data.llamadoId
+        );
+
+        if (tribunalLlamadoFiltrado.tipoMiembro !== TipoMiembro.titular) {
+          throw new Error(
+            "No tienes acceso al cambio de estado del postulante, ya que actualmente no eres titular en este llamado."
+          );
+        }
+
+        const histItem = new HistorialItem();
+        const newCambio = new Cambio();
+        newCambio.nombre = nuevoEstado.nombre;
+        newCambio.postulante = postulLlamado;
+        histItem.cambio = newCambio;
+        histItem.usuario = usuarioSolicitante;
+        histItem.llamado = postulLlamado.llamado;
+        histItem.descripcion = `El miembro del tribunal ${usuarioSolicitante.name} ${usuarioSolicitante?.lastName} solicitó el cambio de estado desde ${postulLlamado.estadoActual.nombre} a ${nuevoEstado.nombre} para el postulante ${postulLlamado.postulante.nombres} ${postulLlamado.postulante?.apellidos}.`;
+
+        await getRepository(Cambio).save(newCambio);
+        await getRepository(HistorialItem).save(histItem);
+        return {
+          ok: true,
+          message: "Cambio de estado de postulante solicitado con éxito.",
+        };
+      } catch (e) {
+        console.log("ChangePostulanteStateInLlamadoTribunal Error", e);
         return {
           ok: false,
           message: e?.message,
@@ -281,7 +413,14 @@ const postulanteController: any = {
             postulante: { id: postulanteId },
             llamado: { id: llamadoId },
           },
-          relations: ["postulante", "llamado", "llamado.cargo", "archivos", "archivos.tipoArchivo", "estadoActual"],
+          relations: [
+            "postulante",
+            "llamado",
+            "llamado.cargo",
+            "archivos",
+            "archivos.tipoArchivo",
+            "estadoActual",
+          ],
         });
 
         if (!postulLlamado) {

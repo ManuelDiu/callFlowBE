@@ -21,6 +21,7 @@ const postulanteSchema = gql`
   input CambiarEstadoPostulanteLlamadoInput {
     llamadoId: Int!
     postulanteId: Int!
+    solicitanteId: Int!
     nuevoEstado: String!
   }
 
@@ -112,9 +113,15 @@ const postulanteSchema = gql`
     deletePostulante(data: DeletePostulanteInput!): MessageResponse
 
     """
-    Cambiar el estado de un postulante en un llamado
+    Cambiar el estado de un postulante en un llamado (endpoint de uso exclusivo para Admins)
     """
     cambiarEstadoPostulanteLlamado(
+      data: CambiarEstadoPostulanteLlamadoInput!
+    ): MessageResponse
+    """
+    Cambiar el estado de un postulante en un llamado (endpoint de uso exclusivo para Miembros del Tribunal), ya que se genera un cambio pendente a aprobar por CDP.
+    """
+    cambiarEstadoPostulanteLlamadoTribunal(
       data: CambiarEstadoPostulanteLlamadoInput!
     ): MessageResponse
   }

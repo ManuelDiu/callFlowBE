@@ -14,6 +14,7 @@ export type InfoPostulanteEnLlamadoInput = {
 export type CambiarEstadoPostulanteLlamadoInput = {
   llamadoId: number;
   postulanteId: number;
+  solicitanteId: number;
   nuevoEstado: EstadoPostulanteEnum;
 };
 
