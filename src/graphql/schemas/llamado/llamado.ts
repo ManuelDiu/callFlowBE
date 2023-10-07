@@ -94,6 +94,12 @@ const llamadoSchema = gql`
     cambio: Cambio
   }
 
+  input LlamadoChangeCambioInput {
+    historialItemId: Int!
+    cambioId: Int!
+    accept: Boolean!
+  }
+
   type Archivo {
     id: Int
     nombre: String
@@ -160,6 +166,8 @@ const llamadoSchema = gql`
     cambiarEstadoLlamado(
       info: CambiarEstadoLlamadoInput
     ): LlamadoResponseOk
+    
+    cambiarCambioLlamado(info: LlamadoChangeCambioInput): LlamadoResponseOk
   }
 
   type Subscription {

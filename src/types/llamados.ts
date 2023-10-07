@@ -80,3 +80,10 @@ export type CambiarEstadoLlamadoInput = {
   etapa: number;
   estado: EstadoLlamadoEnum;
 };
+
+export type CambiarCambioLlamadoInput = {
+  historialItemId: number;
+  cambioId: number;
+  accept: boolean;
+};
+

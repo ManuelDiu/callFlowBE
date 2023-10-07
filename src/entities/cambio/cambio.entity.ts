@@ -12,7 +12,7 @@ export class Cambio extends BaseEntity {
   @PrimaryGeneratedColumn({ type: 'int' })
   id: number;
 
-  @Column()
+  @Column({ nullable: true})
   cambio: boolean;
 
   @Column({

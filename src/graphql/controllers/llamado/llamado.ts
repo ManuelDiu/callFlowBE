@@ -1,9 +1,11 @@
 import { Archivo } from 'entities/archivo/archivo.entity';
+import { Cambio } from 'entities/cambio/cambio.entity';
 import { Cargo } from 'entities/cargo/cargo.entity';
 import { Categoria } from 'entities/categoria/categoria.entity';
 import { EstadoPosibleLlamado } from 'entities/estadoLlamado/estadoLlamado.entity';
 import { EstadoPostulante } from 'entities/estadoPostulante/estadoPostulante.entity';
 import { Etapa } from 'entities/etapa/etapa.entity';
+import { HistorialItem } from 'entities/historialitem/historialitem.entity';
 import { Llamado } from 'entities/llamado/llamado.entity';
 import { Postulante } from 'entities/postulante/postulante.entity';
 import { PostulanteLlamado } from 'entities/postulanteLlamado/postulanteLlamado.entity';
@@ -22,6 +24,7 @@ import { isAdmin } from 'middlewares/permission-handler.middleware';
 import { getRepository } from 'typeorm';
 import {
   AddFileToLlamado,
+  CambiarCambioLlamadoInput,
   CambiarEstadoLlamadoInput,
   LLamaodCreateInput,
   LlamadoCreateResponse,
@@ -221,11 +224,9 @@ const llamadoController: any = {
         const text = `
         El ${
           isAdmin ? 'Admin' : 'Miembro del tribunal'
-        } <span class="userColor" >${
-          loggedUserInfo?.name
-        } ${loggedUserInfo?.lastName}</span> creo el llamado '${
-          llamado?.nombre
-        }'`;
+        } <span class="userColor" >${loggedUserInfo?.name} ${
+          loggedUserInfo?.lastName
+        }</span> creo el llamado '${llamado?.nombre}'`;
 
         await generateHistorialItem(
           text,
@@ -334,12 +335,14 @@ const llamadoController: any = {
         const text = `
           El ${
             isAdmin ? 'Admin' : 'Miembro del tribunal'
-          } <span class="userColor" >${
-          loggedUserInfo?.name
-        } ${loggedUserInfo?.lastName}</span>
-          cambio el estado del llamado '${llamado?.nombre}' a <span class="estadoColor">${
-            info?.estado
-          }</span> , y la etapa actual a <span class="estadoColor">${
+          } <span class="userColor" >${loggedUserInfo?.name} ${
+          loggedUserInfo?.lastName
+        }</span>
+          cambio el estado del llamado '${
+            llamado?.nombre
+          }' a <span class="estadoColor">${
+          info?.estado
+        }</span> , y la etapa actual a <span class="estadoColor">${
           etapa?.nombre
         }</span>
         `;
@@ -372,6 +375,91 @@ const llamadoController: any = {
           ok: false,
           message:
             error?.message || 'Error al cambiar estado del llamado',
+        };
+      }
+    },
+
+    cambiarCambioLlamado: async (
+      _: any,
+      { info }: { info: CambiarCambioLlamadoInput },
+      context: any,
+    ) => {
+      try {
+        await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal]);
+        const loggedUserInfo = await getLoggedUserInfo(context);
+        const isAdmin = userIsAdmin(loggedUserInfo);
+        const historialItem = await getRepository(
+          HistorialItem,
+        ).findOne(
+          {
+            id: info.historialItemId,
+          },
+          {
+            relations: ['usuario', 'llamado', 'cambio'],
+          },
+        );
+        const cambio = await getRepository(Cambio).findOne(
+          {
+            id: info?.cambioId,
+          },
+          {
+            relations: ['postulante', 'postulante.postulante'],
+          },
+        );
+        if (!cambio || !historialItem) {
+          throw new Error('Error al validar los datos enviados');
+        }
+        cambio.cambio = info?.accept;
+        await getRepository(Cambio).save(cambio);
+
+        if (info?.accept === true) {
+          console.log('si, accept');
+          const postulanteLlamado = await getRepository(
+            PostulanteLlamado,
+          ).findOne({
+            id: cambio?.postulante?.id,
+          });
+          console.log('postulanteLlamadoId', postulanteLlamado?.id);
+          if (!postulanteLlamado) {
+            throw new Error('Error al validar los datos enviados');
+          }
+          const newEstado = await getRepository(
+            EstadoPostulante,
+          ).findOne({ nombre: cambio.nombre });
+          postulanteLlamado.estadoActual = newEstado;
+          await getRepository(PostulanteLlamado).save(
+            postulanteLlamado,
+          );
+        }
+
+        const text = `
+          El 
+          ${isAdmin ? `Admin` : `Miembro del tribuanal`}
+          <span class="userColor">"${
+            historialItem?.usuario?.name
+          }"</span> cambio el estado del postulante  <span class="userColor" >"${
+          cambio?.postulante?.postulante?.nombres
+        }"</span> a  <span class="estadoColor" >"${
+          cambio?.nombre
+        }"</span>
+        `;
+
+        await generateHistorialItem(
+          text,
+          historialItem?.llamado?.id,
+          loggedUserInfo?.id,
+        );
+
+        return {
+          ok: true,
+          message: 'Estado actualizado correctamente',
+        };
+      } catch (error) {
+        return {
+          ok: false,
+          message:
+            error?.message ||
+            'Error al cambiar el estado de este postulante',
         };
       }
     },
