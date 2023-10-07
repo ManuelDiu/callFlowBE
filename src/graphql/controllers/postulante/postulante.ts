@@ -19,6 +19,7 @@ import { HistorialItem } from "entities/historialitem/historialitem.entity";
 import { Cambio } from "entities/cambio/cambio.entity";
 import { Usuario } from "entities/usuarios/usuarios.entity";
 import { TipoMiembro } from "enums/TipoMiembro";
+import { generateHistorialItem } from "utilities/llamado";
 
 const pubsub = new PubSub();
 
@@ -228,20 +229,17 @@ const postulanteController: any = {
           );
         }
 
+        const text = `
+          El Administrador (CDP) <span class="userColor">"${usuarioSolicitante.name} ${usuarioSolicitante?.lastName}"</span> cambió el estado del postulante <span class="userColor" >"${postulLlamado.postulante.nombres} ${postulLlamado.postulante?.apellidos}"</span> desde <span class="estadoColor" >"${postulLlamado.estadoActual.nombre}"</span> a <span class="estadoColor" >"${nuevoEstado.nombre}"</span>.
+        `;
+
+        await generateHistorialItem(
+          text,
+          data.llamadoId,
+          usuarioSolicitante?.id
+        );
+
         postulLlamado.estadoActual = nuevoEstado;
-
-        const histItem = new HistorialItem();
-        const newCambio = new Cambio();
-        newCambio.nombre = nuevoEstado.nombre;
-        newCambio.postulante = postulLlamado;
-        newCambio.cambio = true;
-        histItem.cambio = newCambio;
-        histItem.usuario = usuarioSolicitante;
-        histItem.llamado = postulLlamado.llamado;
-        histItem.descripcion = `El administrador (CDP) ${usuarioSolicitante.name} ${usuarioSolicitante?.lastName} cambió el estado del postulante ${postulLlamado.postulante.nombres} ${postulLlamado.postulante?.apellidos} desde ${postulLlamado.estadoActual.nombre} a ${nuevoEstado.nombre}.`;
-
-        await getRepository(Cambio).save(newCambio);
-        await getRepository(HistorialItem).save(histItem);
 
         await getRepository(PostulanteLlamado).save(postulLlamado);
         return {
@@ -343,17 +341,21 @@ const postulanteController: any = {
           );
         }
 
-        const histItem = new HistorialItem();
+        const text = `
+        El Miembro del tribunal <span class="userColor">"${usuarioSolicitante.name} ${usuarioSolicitante?.lastName}"</span> solicitó el cambio de estado para el postulante <span class="userColor" >"${postulLlamado.postulante.nombres} ${postulLlamado.postulante?.apellidos}"</span> desde <span class="estadoColor" >"${postulLlamado.estadoActual.nombre}"</span> a <span class="estadoColor" >"${nuevoEstado.nombre}"</span>.
+        `;
+
         const newCambio = new Cambio();
         newCambio.nombre = nuevoEstado.nombre;
         newCambio.postulante = postulLlamado;
-        histItem.cambio = newCambio;
-        histItem.usuario = usuarioSolicitante;
-        histItem.llamado = postulLlamado.llamado;
-        histItem.descripcion = `El miembro del tribunal ${usuarioSolicitante.name} ${usuarioSolicitante?.lastName} solicitó el cambio de estado desde ${postulLlamado.estadoActual.nombre} a ${nuevoEstado.nombre} para el postulante ${postulLlamado.postulante.nombres} ${postulLlamado.postulante?.apellidos}.`;
 
-        await getRepository(Cambio).save(newCambio);
-        await getRepository(HistorialItem).save(histItem);
+        await generateHistorialItem(
+          text,
+          data.llamadoId,
+          usuarioSolicitante?.id,
+          newCambio,
+        );
+
         return {
           ok: true,
           message: "Cambio de estado de postulante solicitado con éxito.",

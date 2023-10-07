@@ -8,6 +8,7 @@ import { notificationEmail } from 'mailTemplates/notificationEmail.template';
 import { getRepository } from 'typeorm';
 import { LlamadoList } from 'types/llamados';
 import { sendEmail } from './mail';
+import { Cambio } from 'entities/cambio/cambio.entity';
 
 const ORDER_LLAMADO_STATUS = [
   EstadoLlamadoEnum.creado,
@@ -58,6 +59,7 @@ export const generateHistorialItem = async (
   text: string,
   llamadoId: number,
   userId: number,
+  cambio?: Cambio,
 ) => {
   try {
     const llamado = await getRepository(Llamado).findOne({
@@ -76,6 +78,10 @@ export const generateHistorialItem = async (
     historialItem.descripcion = text;
     historialItem.llamado = llamado;
     historialItem.usuario = usuario;
+    if(cambio){
+      historialItem.cambio = cambio;
+      await getRepository(Cambio).save(cambio);
+    }
     await getRepository(HistorialItem).save(historialItem);
 
     const emailToSend = notificationEmail(

@@ -434,12 +434,12 @@ const llamadoController: any = {
 
         const text = `
           El 
-          ${isAdmin ? `Admin` : `Miembro del tribuanal`}
+          ${isAdmin ? `Administrador (CDP)` : `Miembro del tribunal`}
           <span class="userColor">"${
             historialItem?.usuario?.name
-          }"</span> cambio el estado del postulante  <span class="userColor" >"${
+          }"</span> cambió el estado del postulante <span class="userColor" >"${
           cambio?.postulante?.postulante?.nombres
-        }"</span> a  <span class="estadoColor" >"${
+        }"</span> a <span class="estadoColor" >"${
           cambio?.nombre
         }"</span>
         `;
