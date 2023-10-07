@@ -492,7 +492,7 @@ const llamadoController: any = {
       context: any,
     ) => {
       try {
-        await checkAuth(context, [EnumRoles.admin]);
+        await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal, EnumRoles.cordinador]);
         const llamadoInfo = await getRepository(Llamado).findOne(
           { id: llamadoId },
           {
