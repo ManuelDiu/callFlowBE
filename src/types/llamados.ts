@@ -96,3 +96,10 @@ export type EtapaResumed = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+
+export type RenunciarLlamadoInput = {
+  llamadoId: number,
+  userId: number,
+  motivoRenuncia: string,
+}

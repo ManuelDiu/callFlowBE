@@ -29,6 +29,7 @@ import {
   LLamaodCreateInput,
   LlamadoCreateResponse,
   LlamadoList,
+  RenunciarLlamadoInput,
 } from 'types/llamados';
 import { checkAuth, getLoggedUserInfo } from 'utilities/checkAuth';
 import {
@@ -463,6 +464,64 @@ const llamadoController: any = {
         };
       }
     },
+    renunciarLlamado: async (
+      _: any,
+      { info }: { info: RenunciarLlamadoInput },
+      context: any,
+    ) => {
+      try {
+        await checkAuth(context, [EnumRoles.tribunal]);
+        const loggedUserInfo = await getLoggedUserInfo(context);
+        const llamado = await getRepository(Llamado).findOne({
+          id: info.llamadoId,
+        });
+        const usuario = await getRepository(Usuario).findOne({
+          id: info.userId,
+        });
+        if (!llamado || !usuario) {
+          throw new Error('Usuario o llamado invalido');
+        }
+
+        const tribunalLlamado = await getRepository(
+          TribunalLlamado,
+        ).findOne(
+          {
+            usuario: usuario,
+            llamado: llamado,
+          },
+          {
+            relations: ['llamado', 'usuario'],
+          },
+        );
+
+        if (!tribunalLlamado) {
+          throw new Error('Usuario o llamado invalido');
+        }
+        tribunalLlamado.motivoRenuncia = info.motivoRenuncia;
+        await getRepository(TribunalLlamado).save(tribunalLlamado);
+
+        const text = `
+        El 'Miembro del tribunal'
+         <span class="userColor" >${loggedUserInfo?.name} ${loggedUserInfo?.lastName}</span>
+        renuncio al llamado <span class="estadoColor">${llamado?.nombre}</span>`;
+
+        await generateHistorialItem(
+          text,
+          llamado?.id,
+          loggedUserInfo?.id,
+        );
+
+        return {
+          ok: true,
+          message: 'Renunciaste al tribunal correctamente',
+        };
+      } catch (error) {
+        return {
+          ok: false,
+          message: error?.message || 'Error al renunciar al llamado',
+        };
+      }
+    },
   },
   Query: {
     listarLlamados: async (
@@ -475,12 +534,39 @@ const llamadoController: any = {
         EnumRoles.tribunal,
         EnumRoles.cordinador,
       ]);
+      const loggedUserInfo = await getLoggedUserInfo(context);
+      const isAdmin = userIsAdmin(loggedUserInfo);
+
       const llamados = await getRepository(Llamado).find({
-        relations: ['estadoActual', 'cargo', 'postulantes'],
+        relations: [
+          'estadoActual',
+          'cargo',
+          'postulantes',
+          'solicitante',
+          'miembrosTribunal',
+          'miembrosTribunal.usuario',
+        ],
+      });
+
+      const filterLlamados = llamados?.filter((llamado) => {
+        if (isAdmin) {
+          return true;
+        } else {
+          const existsOnTribunal =
+            llamado?.miembrosTribunal?.find(
+              (tribunal) =>
+                tribunal?.usuario?.id === loggedUserInfo?.id &&
+                tribunal?.motivoRenuncia === '',
+            ) !== undefined;
+          return (
+            llamado?.solicitante?.id === loggedUserInfo?.id ||
+            existsOnTribunal
+          );
+        }
       });
 
       const allLlamadosFormtted =
-        llamados?.map((llamado) => {
+        filterLlamados?.map((llamado) => {
           return formatLlamadoToList(llamado);
         }) || [];
 
@@ -492,7 +578,13 @@ const llamadoController: any = {
       context: any,
     ) => {
       try {
-        await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal, EnumRoles.cordinador]);
+        await checkAuth(context, [
+          EnumRoles.admin,
+          EnumRoles.tribunal,
+          EnumRoles.cordinador,
+        ]);
+        const loggedUserInfo = await getLoggedUserInfo(context);
+        const isAdmin = userIsAdmin(loggedUserInfo);
         const llamadoInfo = await getRepository(Llamado).findOne(
           { id: llamadoId },
           {
@@ -519,6 +611,21 @@ const llamadoController: any = {
         );
         if (!llamadoInfo) {
           throw new Error('No existe el llamado');
+        }
+        const existsOnTribunal =
+          llamadoInfo?.miembrosTribunal?.find(
+            (tribunal) =>
+              tribunal?.usuario?.id === loggedUserInfo?.id &&
+              tribunal?.motivoRenuncia === '',
+          ) !== undefined;
+        const isParticipe =
+          llamadoInfo?.solicitante?.id === loggedUserInfo?.id ||
+          existsOnTribunal;
+
+        if (!isParticipe && !isAdmin) {
+          throw new Error(
+            'Error al acceder a la informacion de llamado, permisos invalidos',
+          );
         }
         return {
           ...llamadoInfo,
