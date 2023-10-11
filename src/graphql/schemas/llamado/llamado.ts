@@ -1,6 +1,7 @@
 import { gql } from 'apollo-server-express';
 
 const llamadoSchema = gql`
+  scalar Date
   enum TipoMiembro {
     Titular
     Suplente
@@ -98,6 +99,16 @@ const llamadoSchema = gql`
     historialItemId: Int!
     cambioId: Int!
     accept: Boolean!
+  }
+
+  type EtapaListResumed {
+    id: Int!
+    nombre: String!
+    plazoDias: Int
+    puntajeMin: Int
+    total: Int
+    createdAt: Date!
+    updatedAt: Date!
   }
 
   type Archivo {

@@ -41,3 +41,26 @@ export type UpdatePostulanteResponse = {
   message: string;
   postulante?: PostulanteType;
 };
+
+export type EstadoData = {
+  id: number;
+  nombre: string;
+  updatedAt: Date;
+};
+
+export type PostulanteInLlamadoResumed = {
+  postulante: PostulanteList;
+  estadoActual: EstadoData;
+  etapa: EtapaListResumed;
+  updatedAt: Date;
+};
+
+type EtapaListResumed = {
+  id: number;
+  nombre: string;
+  plazoDias: number;
+  puntajeMin: number;
+  total: number;
+  createdAt: Date;
+  updatedAt: Date;
+};

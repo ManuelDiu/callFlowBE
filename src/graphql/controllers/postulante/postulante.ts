@@ -7,6 +7,7 @@ import {
   DeletePostulanteInput,
   CambiarEstadoPostulanteLlamadoInput,
   InfoPostulanteEnLlamadoInput,
+  PostulanteInLlamadoResumed,
 } from "types/posstulante";
 import { MessageResponse } from "types/response";
 import { getRepository } from "typeorm";
@@ -20,6 +21,10 @@ import { Cambio } from "entities/cambio/cambio.entity";
 import { Usuario } from "entities/usuarios/usuarios.entity";
 import { TipoMiembro } from "enums/TipoMiembro";
 import { generateHistorialItem } from "utilities/llamado";
+import { DataGrilla } from "types/grillaLlamado";
+import { Requisito } from "types/llamados";
+import { Puntaje } from "entities/puntaje/puntaje.entity";
+import { Requisito as RequisitoEntity } from "entities/requisito/requisito.entity";
 
 const pubsub = new PubSub();
 
@@ -171,6 +176,84 @@ const postulanteController: any = {
         return {
           ok: true,
           message: "Postulante eliminado correctamente.",
+        };
+      } catch (e) {
+        console.log("DeletePostulante Error", e);
+        return {
+          ok: false,
+          message: e?.message,
+        };
+      }
+    },
+    guardarPuntajesPostulanteEnLlamado: async (
+      _: any,
+      {
+        data,
+      }: {
+        data: DataGrilla;
+      },
+      context: any
+    ): Promise<MessageResponse> => {
+      try {
+        // await checkAuth(context, [EnumRoles.tribunal]);
+
+        const postulLlamado = await getRepository(PostulanteLlamado).findOne({
+          where: {
+            postulante: { id: data.postulanteId },
+            llamado: { id: data.llamadoId },
+          },
+          relations: [
+            "postulante",
+            "llamado",
+            "puntajes",
+            "puntajes.requisito",
+          ],
+        });
+
+        // console.log(postulLlamado);
+        data.requisitos.forEach(async (currentReq) => {
+          const puntajeAlreadyExists = postulLlamado.puntajes.find(
+            (puntaje) => currentReq.id === puntaje.requisito.id
+          );
+          if (!puntajeAlreadyExists) {
+            // este requisito aún no está puntuado para este postulante.
+            const foundReq = await getRepository(RequisitoEntity).findOne(
+              currentReq.id
+            );
+            if (!foundReq) {
+              throw new Error(
+                "No se encontró el requisito con el id: " + currentReq.id
+              );
+            }
+            const newPuntaje = new Puntaje();
+            newPuntaje.valor = currentReq.nuevoPuntaje;
+            newPuntaje.postulante = postulLlamado;
+            newPuntaje.requisito = foundReq;
+            await getRepository(Puntaje).save(newPuntaje);
+          } else {
+            const foundPuntaje = await getRepository(Puntaje).findOne({
+              where: {
+                postulante: { postulante: { id: data.postulanteId } },
+                requisito: { id: currentReq.id },
+              },
+              relations: ["requisito", "postulante", "postulante.postulante"],
+            });
+            if (!foundPuntaje) {
+              throw new Error("No se encontró el puntaje existente.");
+            }
+            if (foundPuntaje.valor !== currentReq.nuevoPuntaje) {
+              foundPuntaje.valor = currentReq.nuevoPuntaje;
+              await getRepository(Puntaje).save(foundPuntaje);
+              console.log("Puntaje modificado con exito.");
+            }
+          }
+        });
+
+        await getRepository(PostulanteLlamado).save(postulLlamado);
+
+        return {
+          ok: true,
+          message: "Puntajes guardados correctamente.",
         };
       } catch (e) {
         console.log("DeletePostulante Error", e);
@@ -353,7 +436,7 @@ const postulanteController: any = {
           text,
           data.llamadoId,
           usuarioSolicitante?.id,
-          newCambio,
+          newCambio
         );
 
         return {
@@ -434,6 +517,61 @@ const postulanteController: any = {
       } catch (e) {
         console.log("ChangePostulanteStateInLlamado Error", e);
         return null;
+      }
+    },
+    getPostulantesByLlamadoId: async (
+      _: any,
+      { llamadoId }: { llamadoId: number },
+      context: any
+    ) => {
+      try {
+        // await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal, EnumRoles.cordinador]);
+        const postulLlamado = await getRepository(PostulanteLlamado).find({
+          where: {
+            llamado: { id: llamadoId },
+          },
+          relations: ["postulante", "llamado", "etapa", "estadoActual"],
+        });
+
+        if (!postulLlamado) {
+          throw new Error(
+            "No se han encontrado postulantes dentro de este llamado."
+          );
+        }
+        console.log("PostulanteLlamado", postulLlamado);
+
+        const formattedPostulantes: PostulanteInLlamadoResumed[] = postulLlamado.map(
+          (item) => {
+            return {
+              postulante: {
+                id: item.postulante.id,
+                nombres: item.postulante.nombres,
+                apellidos: item.postulante.apellidos,
+                documento: item.postulante.documento,
+                updatedAt: new Date(item.postulante.updatedAt),
+              },
+              estadoActual: {
+                id: item.estadoActual.id,
+                nombre: item.estadoActual.nombre,
+                updatedAt: new Date(item.estadoActual.updatedAt),
+              },
+              etapa: {
+                id: item.etapa.id,
+                nombre: item.etapa.nombre,
+                plazoDias: item.etapa.plazoDias,
+                puntajeMin: item.etapa.puntajeMin,
+                total: item.etapa.total,
+                createdAt: new Date(item.etapa.createdAt),
+                updatedAt: new Date(item.etapa.updatedAt),
+              },
+              updatedAt: new Date(item.updatedAt),
+            };
+          }
+        );
+
+        return formattedPostulantes;
+      } catch (error) {
+        throw error;
       }
     },
   },

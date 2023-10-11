@@ -87,3 +87,12 @@ export type CambiarCambioLlamadoInput = {
   accept: boolean;
 };
 
+export type EtapaResumed = {
+  id?: number;
+  nombre: string;
+  plazoDias: number;
+  puntajeMin: number;
+  total: number;
+  createdAt: Date;
+  updatedAt: Date;
+};

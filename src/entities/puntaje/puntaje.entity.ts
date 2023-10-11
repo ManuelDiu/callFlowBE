@@ -12,6 +12,9 @@ export class Puntaje extends BaseEntity {
   @PrimaryGeneratedColumn({ type: 'int' })
   id: number;
 
+  @Column()
+  valor: number;
+
   @ManyToOne(() => Requisito, (req) => req.allPuntajes)
   requisito: Requisito;
 

@@ -25,6 +25,17 @@ const postulanteSchema = gql`
     nuevoEstado: String!
   }
 
+  input DataGrillaInput {
+    postulanteId: Int!
+    llamadoId: Int!
+    requisitos: [RequisitoGrillaInput]!
+  }
+
+  input RequisitoGrillaInput {
+    id: Int!
+    nuevoPuntaje: Int!
+  }
+
   type PostulanteItemOutput {
     nombres: String!
     apellidos: String
@@ -96,6 +107,13 @@ const postulanteSchema = gql`
     updatedAt: Date!
   }
 
+  type PostulanteInLlamadoResumed {
+    postulante: PostulanteListItemOutput!
+    estadoActual: EstadoData!
+    etapa: EtapaListResumed
+    updatedAt: Date!
+  }
+
   type Mutation {
     """
     Crear un postulante.
@@ -124,6 +142,12 @@ const postulanteSchema = gql`
     cambiarEstadoPostulanteLlamadoTribunal(
       data: CambiarEstadoPostulanteLlamadoInput!
     ): MessageResponse
+    """
+    Guardar los puntajes de un postulante en un llamado.
+    """
+    guardarPuntajesPostulanteEnLlamado(
+      data: DataGrillaInput!
+    ): MessageResponse
   }
 
   type Query {
@@ -138,6 +162,12 @@ const postulanteSchema = gql`
       llamadoId: Int!
       postulanteId: Int!
     ): PostulanteLlamadoFull
+    """
+    Listar postulantes en un llamado x.
+    """
+    getPostulantesByLlamadoId(
+      llamadoId: Int!
+    ): [PostulanteInLlamadoResumed]
   }
 
   type Subscription {
