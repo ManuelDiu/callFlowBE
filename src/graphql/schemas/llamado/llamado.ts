@@ -160,6 +160,12 @@ const llamadoSchema = gql`
     getLlamadoById(llamadoId: Int): FullLlamadoInfo
   }
 
+  input RenunciarLlamadoInput {
+    llamadoId: Int!
+    userId: Int!
+    motivoRenuncia: String!
+  }
+
   type Mutation {
     crearLlamado(info: CreateLlamadoInput): LlamadoResponseOk
     deshabilitarLlamados(llamados: [Int]): LlamadoResponseOk
@@ -168,6 +174,8 @@ const llamadoSchema = gql`
     ): LlamadoResponseOk
     
     cambiarCambioLlamado(info: LlamadoChangeCambioInput): LlamadoResponseOk
+    renunciarLlamado(info: RenunciarLlamadoInput): LlamadoResponseOk
+
   }
 
   type Subscription {

@@ -87,3 +87,10 @@ export type CambiarCambioLlamadoInput = {
   accept: boolean;
 };
 
+
+
+export type RenunciarLlamadoInput = {
+  llamadoId: number,
+  userId: number,
+  motivoRenuncia: string,
+}

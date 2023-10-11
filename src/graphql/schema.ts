@@ -9,6 +9,7 @@ import cargoSchema from "./schemas/cargo/cargo";
 import postulanteSchema from "./schemas/postulante/postulante";
 import templateSchema from "./schemas/template/template";
 import archivoSchema from "./schemas/archivo/archivo";
+import { disponibilidadSchema } from "./schemas/disponibilidad/disponibilidad";
 
 var schema = gql`
 
@@ -64,7 +65,7 @@ var schema = gql`
 `;
 
 
-const allSchemas = [usuarioSchema, categoriaSchema, llamadoSchema, cargoSchema, postulanteSchema, tipoArchivoSchema, templateSchema, archivoSchema, schema];
+const allSchemas = [usuarioSchema, categoriaSchema, llamadoSchema, cargoSchema, postulanteSchema, tipoArchivoSchema, templateSchema, archivoSchema, disponibilidadSchema, schema];
 
 
 export default mergeTypeDefs(allSchemas);
