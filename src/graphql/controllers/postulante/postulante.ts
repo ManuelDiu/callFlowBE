@@ -211,6 +211,11 @@ const postulanteController: any = {
         });
 
         // console.log(postulLlamado);
+        if(data.requisitos.length < 1){
+          throw new Error(
+            "No se recibieron requisitos en el payload."
+          );
+        }
         data.requisitos.forEach(async (currentReq) => {
           const puntajeAlreadyExists = postulLlamado.puntajes.find(
             (puntaje) => currentReq.id === puntaje.requisito.id
@@ -511,7 +516,7 @@ const postulanteController: any = {
         if (!postulLlamado) {
           throw new Error("Postulante en llamado no encontrado.");
         }
-        console.log("PostulanteLlamado", postulLlamado);
+        // console.log("PostulanteLlamado", postulLlamado);
 
         return postulLlamado;
       } catch (e) {
