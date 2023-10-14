@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server-express';
+import { gql } from "apollo-server-express";
 
 const llamadoSchema = gql`
   scalar Date
@@ -173,14 +173,51 @@ const llamadoSchema = gql`
     selectedEstados: [String]
   }
 
+  type RequisitoType {
+    id: Int
+    nombre: String!
+    puntajeSugerido: Float!
+    puntaje: Float!
+    excluyente: Boolean!
+  }
+
+  type SubEtapaGrilla {
+    id: Int
+    nombre: String!
+    subtotal: Float!
+    puntajeMaximo: Float!
+    requisitos: [RequisitoType!]!
+  }
+
+  type EtapaGrilla {
+    id: Int
+    nombre: String!
+    plazoDias: Int!
+    total: Float!
+    puntajeMin: Float!
+    currentEtapa: Float!
+    cantEtapas: Float!
+    subetapas: [SubEtapaGrilla!]!
+  }
+
   type Query {
     getLlamadoById(llamadoId: Int): FullLlamadoInfo
+    """
+    Obtener data de la etapa en la que se encuentra un postulante en un llamado x.
+    """
+    getEtapaActualPostInLlamado(llamadoId: Int!, postulanteId: Int!): EtapaGrilla
   }
 
   input RenunciarLlamadoInput {
     llamadoId: Int!
     userId: Int!
     motivoRenuncia: String!
+  }
+
+  input AvanzarEtapaInput {
+    llamadoId: Int!
+    postulanteId: Int!
+    currentEtapa: Int!
   }
 
   type Mutation {
@@ -191,6 +228,8 @@ const llamadoSchema = gql`
     ): LlamadoResponseOk
     cambiarCambioLlamado(info: LlamadoChangeCambioInput): LlamadoResponseOk
     renunciarLlamado(info: RenunciarLlamadoInput): LlamadoResponseOk
+    avanzarEtapaPostulanteInLlamado(data: AvanzarEtapaInput): MessageResponse
+
   }
 
   type Query {
