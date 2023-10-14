@@ -64,3 +64,13 @@ type EtapaListResumed = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+export type AddFileToPostulante = {
+  nombre: string;
+  url: string;
+  extension: string;
+  tipoArchivo: number;
+  postulanteId: number;
+  llamadoId: number;
+  solicitanteId: number;
+};

@@ -55,12 +55,21 @@ export const formatLlamadoToList = (llamado: Llamado) => {
   } as LlamadoList;
 };
 
-export const generateHistorialItem = async (
+type Props = {
   text: string,
   llamadoId: number,
   userId: number,
   cambio?: Cambio,
-) => {
+  emailText?: string,
+}
+
+export const generateHistorialItem = async ({
+  text,
+  llamadoId,
+  userId,
+  cambio,
+  emailText
+}: Props) => {
   try {
     const llamado = await getRepository(Llamado).findOne({
       id: llamadoId
@@ -86,7 +95,7 @@ export const generateHistorialItem = async (
 
     const emailToSend = notificationEmail(
       process.env.APP_FRONTEND_URL,
-      text,
+      emailText ? emailText : text,
     );
 
     // esto solo enviara email a los admin

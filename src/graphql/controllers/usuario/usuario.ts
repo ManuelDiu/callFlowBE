@@ -436,6 +436,37 @@ const usuarioController: any = {
         return [];
       }
     },
+    getUserInfoById: async (
+      _: any,
+      {
+        usrId,
+      }: {
+        usrId: number;
+      },
+      context: any,
+    ): Promise<UserList> => {
+      try {
+        await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal, EnumRoles.cordinador,]);
+        const userInfo = await getRepository(Usuario).findOne(
+          { id: usrId },
+          {
+            relations: ['roles'],
+          },
+        );
+        if (!userInfo) {
+          throw new Error('Usuario no encontrado');
+        }
+        const formatRoles = userInfo?.roles?.map((rol) => rol?.nombre);
+
+        const dataToReturn = {
+          ...userInfo.toJSON(),
+          roles: formatRoles,
+        } as any;
+        return dataToReturn as UserList;
+      } catch (e) {
+        throw new Error(e?.message);
+      }
+    },
   },
   Subscription: {
     userCreated: {
