@@ -103,3 +103,12 @@ export type RenunciarLlamadoInput = {
   userId: number,
   motivoRenuncia: string,
 }
+
+
+export type ListarLlamadoInputQuery = {
+  selectedCategorias: number[],
+  selectedCargos: number[],
+  selectedPostulantes: number[],
+  selectedUsuarios: number[],
+  selectedEstados: string[]
+}

@@ -27,6 +27,7 @@ import {
   CambiarCambioLlamadoInput,
   CambiarEstadoLlamadoInput,
   LLamaodCreateInput,
+  ListarLlamadoInputQuery,
   LlamadoCreateResponse,
   LlamadoList,
   RenunciarLlamadoInput,
@@ -526,7 +527,7 @@ const llamadoController: any = {
   Query: {
     listarLlamados: async (
       _: any,
-      __: any,
+      { filters }: { filters: ListarLlamadoInputQuery },
       context: any,
     ): Promise<LlamadoList[]> => {
       await checkAuth(context, [
@@ -545,6 +546,7 @@ const llamadoController: any = {
           'solicitante',
           'miembrosTribunal',
           'miembrosTribunal.usuario',
+          'categorias',
         ],
       });
 
@@ -565,8 +567,93 @@ const llamadoController: any = {
         }
       });
 
+      // with filters
+      let llamadosWithFilters: Llamado[] = filterLlamados;
+
+      if (filters?.selectedCargos?.length > 0) {
+        const newLlamados = llamadosWithFilters?.filter((item) => {
+          const cargoId = item?.cargo?.id;
+          return filters?.selectedCargos?.includes(cargoId);
+        });
+        llamadosWithFilters = newLlamados;
+      }
+
+      if (filters?.selectedCategorias?.length > 0) {
+        llamadosWithFilters?.forEach((item) => {
+          const categoriasIdsOfLlamado = item?.categorias?.map(
+            (item) => item?.id,
+          );
+
+          filters?.selectedCategorias?.forEach((catId) => {
+            if (categoriasIdsOfLlamado?.includes(catId)) {
+              // correct
+              if (
+                !llamadosWithFilters?.find(
+                  (llam) => llam.id === item?.id,
+                )
+              ) {
+                llamadosWithFilters = [...llamadosWithFilters, item];
+              }
+            } else {
+              // no correct
+              if (
+                llamadosWithFilters?.find(
+                  (llam) => llam.id === item?.id,
+                )
+              ) {
+                llamadosWithFilters = llamadosWithFilters?.filter(
+                  (llam) => llam?.id !== item?.id,
+                );
+              }
+            }
+          });
+        });
+      }
+
+      if (filters?.selectedPostulantes?.length > 0) {
+        llamadosWithFilters?.forEach((item) => {
+          const postulantesOfLlamado = item?.postulantes?.map(
+            (item) => item?.id,
+          );
+          //1 , 2 ,3
+
+          //1, 2
+          filters?.selectedPostulantes?.forEach((postId) => {
+            if (postulantesOfLlamado?.includes(postId)) {
+              // correct
+              if (
+                !llamadosWithFilters?.find(
+                  (llam) => llam.id === item?.id,
+                )
+              ) {
+                llamadosWithFilters = [...llamadosWithFilters, item];
+              }
+            } else {
+              // no correct
+              if (
+                llamadosWithFilters?.find(
+                  (llam) => llam.id === item?.id,
+                )
+              ) {
+                llamadosWithFilters = llamadosWithFilters?.filter(
+                  (llam) => llam?.id !== item?.id,
+                );
+              }
+            }
+          });
+        });
+      }
+
+      if (filters?.selectedEstados?.length > 0) {
+        const newLlamados = llamadosWithFilters?.filter((item) => {
+          const estadoActual = item?.estadoActual.nombre;
+          return filters?.selectedEstados?.includes(estadoActual);
+        });
+        llamadosWithFilters = newLlamados;
+      }
+
       const allLlamadosFormtted =
-        filterLlamados?.map((llamado) => {
+        llamadosWithFilters?.map((llamado) => {
           return formatLlamadoToList(llamado);
         }) || [];
 

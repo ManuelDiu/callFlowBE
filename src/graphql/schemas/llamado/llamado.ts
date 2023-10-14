@@ -42,9 +42,7 @@ const llamadoSchema = gql`
     subetapas: [SubetapaCreate]!
   }
 
-  type Query {
-    listarLlamados: [LlamadoList]
-  }
+  
 
   input LlamadoInfoCreate {
     nombre: String!
@@ -167,6 +165,14 @@ const llamadoSchema = gql`
     estado: String!
   }
 
+  input ListarLlamadoInputQuery {
+    selectedCategorias: [Int]
+    selectedCargos: [Int]
+    selectedPostulantes: [Int]
+    selectedUsuarios: [Int]
+    selectedEstados: [String]
+  }
+
   type Query {
     getLlamadoById(llamadoId: Int): FullLlamadoInfo
   }
@@ -183,10 +189,12 @@ const llamadoSchema = gql`
     cambiarEstadoLlamado(
       info: CambiarEstadoLlamadoInput
     ): LlamadoResponseOk
-    
     cambiarCambioLlamado(info: LlamadoChangeCambioInput): LlamadoResponseOk
     renunciarLlamado(info: RenunciarLlamadoInput): LlamadoResponseOk
+  }
 
+  type Query {
+    listarLlamados(filters: ListarLlamadoInputQuery): [LlamadoList]
   }
 
   type Subscription {
