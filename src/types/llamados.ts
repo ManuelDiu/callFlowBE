@@ -75,6 +75,15 @@ export type AddFileToLlamado = {
   llamadoId: number;
 };
 
+export type AddFileToLlamadoFirma = {
+  nombre: "Grilla" | "Acta";
+  url: string;
+  extension: string;
+  tipoArchivo: number;
+  llamadoId: number;
+};
+
+
 export type CambiarEstadoLlamadoInput = {
   llamadoId: number;
   etapa: number;

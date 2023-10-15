@@ -744,6 +744,8 @@ const llamadoController: any = {
               "archivos",
               "archivos.tipoArchivo",
               "archivosFirma",
+              "archivosFirma.firmas",
+              "archivosFirma.firmas.usuario",
               "estadoActual",
             ],
           }
@@ -873,6 +875,39 @@ const llamadoController: any = {
         throw error;
       }
     },
+    listarPuntajesPostulantes: async (
+      _: any,
+      { llamadoId }: { llamadoId: number },
+      context: any,
+    ): Promise<any> => {
+      try {
+        await checkAuth(context, [EnumRoles.admin]);
+        const llamado = await getRepository(Llamado).findOne({ id: llamadoId }, { relations: ['postulantes', 'postulantes.puntajes', 'postulantes.postulante', 'postulantes.puntajes.requisito'] });
+        if (!llamado) {
+          throw new Error("llamado invalido");
+        }
+
+        const dataToSend: any[] = [];
+
+        await Promise.all(llamado?.postulantes?.map(async (post) => {
+          const item = {
+            postulanteId: post?.postulante?.id,
+            requisitos: post?.puntajes?.map((puntaje) => {
+              return {
+                requisitoId: puntaje?.requisito?.id,
+                puntaje: puntaje?.valor,
+              }
+            })
+          }
+          dataToSend?.push(item);
+        }))
+
+        return dataToSend;
+      } catch (error) {
+        console.log(error)
+        return [];
+      }
+    }
   },
   Subscription: {
     llamadoCreado: {

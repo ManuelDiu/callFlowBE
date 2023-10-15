@@ -16,6 +16,7 @@ const templateSchema = gql`
 
   type RequisitoList {
     nombre: String
+    id: Int
     puntajeSugerido: Int
     excluyente: Boolean
   }

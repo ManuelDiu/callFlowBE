@@ -117,6 +117,20 @@ const llamadoSchema = gql`
     tipoArchivo: TipoArchivoItemOutput
   }
 
+  type Firmas {
+    usuario: UserList
+    firmado: Boolean
+  }
+
+  type ArchivoFirma {
+    id: Int
+    nombre: String
+    url: String
+    extension: String
+    firmas: [Firmas]
+  }
+
+
   type TribunalLlamado {
     usuario: UserList
     id: Int
@@ -154,7 +168,7 @@ const llamadoSchema = gql`
     categorias: [CategoriaListItemOutput]
     historiales: [HistorialLlamado]
     archivos: [Archivo]
-    archivosFirma: [Archivo]
+    archivosFirma: [ArchivoFirma]
     etapas: [EtapaList]
     etapaActual: EtapaList
   }
@@ -229,11 +243,21 @@ const llamadoSchema = gql`
     cambiarCambioLlamado(info: LlamadoChangeCambioInput): LlamadoResponseOk
     renunciarLlamado(info: RenunciarLlamadoInput): LlamadoResponseOk
     avanzarEtapaPostulanteInLlamado(data: AvanzarEtapaInput): MessageResponse
+  }
 
+  type RequisitoPostulanteList {
+    puntaje: Int
+    requisitoId: Int
+  }
+
+  type PostulantePuntaje {
+    postulanteId: Int
+    requisitos: [RequisitoPostulanteList]
   }
 
   type Query {
     listarLlamados(filters: ListarLlamadoInputQuery): [LlamadoList]
+    listarPuntajesPostulantes(llamadoId: Int): [PostulantePuntaje]
   }
 
   type Subscription {
