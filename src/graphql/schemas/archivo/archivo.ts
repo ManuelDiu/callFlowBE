@@ -1,4 +1,4 @@
-import { gql } from 'apollo-server-express';
+import { gql } from "apollo-server-express";
 
 const archivoSchema = gql`
   enum TipoArchivoFirma {
@@ -20,8 +20,20 @@ const archivoSchema = gql`
     extension: String!
     llamadoId: Int!
   }
+
+  input AddFilePostulanteInput {
+    nombre: String!
+    url: String!
+    extension: String!
+    tipoArchivo: Int!
+    llamadoId: Int!
+    postulanteId: Int!
+    solicitanteId: Int!
+  }
+
   type Mutation {
     addFileToLlamado(info: AddFileLlamadoInput): LlamadoResponseOk
+    addFileToPostulante(info: AddFilePostulanteInput): MessageResponse
     addArchivoFirmaToLlamado(info: AddFileLlamadoInputFirma): LlamadoResponseOk
     deleteArchivo(archivoId: Int): MessageResponse
   }

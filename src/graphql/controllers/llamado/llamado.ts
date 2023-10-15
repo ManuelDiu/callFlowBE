@@ -230,7 +230,11 @@ const llamadoController: any = {
           loggedUserInfo?.lastName
         }</span> creo el llamado '${llamado?.nombre}'`;
 
-        await generateHistorialItem(text, llamado?.id, loggedUserInfo?.id);
+        await generateHistorialItem({
+          text: text,
+          llamadoId: llamado?.id,
+          userId: loggedUserInfo?.id,
+        });
 
         llamadoSub.publish("List_Llamados", {
           llamadoCreado: formatLlamadoToList(loadedLlamadoInfo),
@@ -344,8 +348,11 @@ const llamadoController: any = {
         }</span>
         `;
 
-        await generateHistorialItem(text, llamado?.id, loggedUserInfo?.id);
-
+        await generateHistorialItem({
+          text: text,
+          llamadoId: llamado?.id,
+          userId: loggedUserInfo?.id,
+        });
         const loadedLlamadoInfo = await getRepository(Llamado).findOne(
           {
             id: llamado?.id,
@@ -430,11 +437,11 @@ const llamadoController: any = {
         }"</span> a <span class="estadoColor" >"${cambio?.nombre}"</span>
         `;
 
-        await generateHistorialItem(
-          text,
-          historialItem?.llamado?.id,
-          loggedUserInfo?.id
-        );
+        await generateHistorialItem({
+          text: text,
+          llamadoId: historialItem?.llamado?.id,
+          userId: loggedUserInfo?.id,
+        });
 
         return {
           ok: true,
@@ -487,8 +494,11 @@ const llamadoController: any = {
          <span class="userColor" >${loggedUserInfo?.name} ${loggedUserInfo?.lastName}</span>
         renuncio al llamado <span class="estadoColor">${llamado?.nombre}</span>`;
 
-        await generateHistorialItem(text, llamado?.id, loggedUserInfo?.id);
-
+        await generateHistorialItem({
+          text: text,
+          llamadoId: llamado?.id,
+          userId: loggedUserInfo?.id,
+        });
         return {
           ok: true,
           message: "Renunciaste al tribunal correctamente",

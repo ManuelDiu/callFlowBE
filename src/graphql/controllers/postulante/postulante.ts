@@ -321,11 +321,11 @@ const postulanteController: any = {
           El Administrador (CDP) <span class="userColor">"${usuarioSolicitante.name} ${usuarioSolicitante?.lastName}"</span> cambió el estado del postulante <span class="userColor" >"${postulLlamado.postulante.nombres} ${postulLlamado.postulante?.apellidos}"</span> desde <span class="estadoColor" >"${postulLlamado.estadoActual.nombre}"</span> a <span class="estadoColor" >"${nuevoEstado.nombre}"</span>.
         `;
 
-        await generateHistorialItem(
-          text,
-          data.llamadoId,
-          usuarioSolicitante?.id
-        );
+        await generateHistorialItem({
+          text: text,
+          llamadoId: data.llamadoId,
+          userId: usuarioSolicitante?.id,
+        });
 
         postulLlamado.estadoActual = nuevoEstado;
 
@@ -437,12 +437,12 @@ const postulanteController: any = {
         newCambio.nombre = nuevoEstado.nombre;
         newCambio.postulante = postulLlamado;
 
-        await generateHistorialItem(
-          text,
-          data.llamadoId,
-          usuarioSolicitante?.id,
-          newCambio
-        );
+        await generateHistorialItem({
+          text: text,
+          llamadoId: data.llamadoId,
+          userId: usuarioSolicitante?.id,
+          cambio: newCambio,
+        });
 
         return {
           ok: true,

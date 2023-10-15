@@ -113,6 +113,9 @@ const usuarioSchema = gql`
         listUsuarios: [UserList]
         listarSolicitantes: [UserList]
         listarMiembrosTribunal: [UserList]
+        getUserInfoById(
+            usrId: Int!
+        ): UserList
     }
 
     type Subscription {
