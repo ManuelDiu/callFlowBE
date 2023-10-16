@@ -11,7 +11,7 @@ import {
   AddFileToLlamadoFirma,
 } from 'types/llamados';
 import { AddFileToPostulante } from 'types/posstulante';
-import { checkAuth } from 'utilities/checkAuth';
+import { checkAuth, getLoggedUserInfo } from 'utilities/checkAuth';
 import { generateHistorialItem } from 'utilities/llamado';
 
 const archivoController = {
@@ -19,22 +19,34 @@ const archivoController = {
     deleteArchivo: async (
       _: any,
       { archivoId }: { archivoId: number },
-      context: any
+      context: any,
     ) => {
       try {
         await checkAuth(context, [Roles.admin]);
         const archivo = await getRepository(Archivo).findOne({
           id: archivoId,
         });
+        if (!archivo) {
+          const archivoFirma = await getRepository(
+            ArchivoFirma,
+          ).findOne({
+            id: archivoId,
+          });
+          await getRepository(ArchivoFirma).remove(archivoFirma);
+          return {
+            ok: true,
+            message: 'Archivo eliminado correctamente',
+          };
+        }
         await getRepository(Archivo).remove(archivo);
         return {
           ok: true,
-          message: "Archivo eliminado correctamente",
+          message: 'Archivo eliminado correctamente',
         };
       } catch (error) {
         return {
           ok: false,
-          message: error?.message || "Error al eliminar archivo",
+          message: error?.message || 'Error al eliminar archivo',
         };
       }
     },
@@ -54,7 +66,7 @@ const archivoController = {
         });
         if (!fileType || !llamado) {
           throw new Error('Error al cargar archivo al llamado');
-          throw new Error("Error al cargar archivo al llamado");
+          throw new Error('Error al cargar archivo al llamado');
         }
         const newArchivo = new Archivo();
         newArchivo.nombre = info?.nombre;
@@ -83,6 +95,7 @@ const archivoController = {
     ) => {
       try {
         await checkAuth(context, [Roles.admin, Roles.tribunal]);
+        const loggedUserInfo = await getLoggedUserInfo(context);
         const llamado = await getRepository(Llamado).findOne(
           { id: info?.llamadoId },
           { relations: ['archivosFirma'] },
@@ -109,6 +122,21 @@ const archivoController = {
         newArchivo.llamado = llamado;
         await getRepository(ArchivoFirma).save(newArchivo);
 
+        const text = `
+        El usuario <span class="userColor">"${loggedUserInfo.name} ${loggedUserInfo?.lastName}"</span> agregó un archivo para firmar con nombre <span class="fileNameColor" >"${newArchivo.nombre}"</span> al llamado '${llamado?.nombre}'.
+      `;
+
+        const emailText = `
+        El usuario <span class="userColor">"${loggedUserInfo.name} ${loggedUserInfo?.lastName}"</span> agregó un archivo para firmar con nombre <span class="fileNameColor" >"${newArchivo.nombre}"</span> al llamado '${llamado?.nombre}'.
+      `;
+
+        await generateHistorialItem({
+          text: text,
+          emailText: emailText,
+          llamadoId: info?.llamadoId,
+          userId: loggedUserInfo?.id,
+        });
+
         return {
           ok: true,
           message: 'Archivo cargado correctamente',
@@ -123,34 +151,38 @@ const archivoController = {
     addFileToPostulante: async (
       _: any,
       { info }: { info: AddFileToPostulante },
-      context: any
+      context: any,
     ) => {
       try {
         await checkAuth(context, [Roles.admin, Roles.tribunal]);
-        const postulLlamado = await getRepository(PostulanteLlamado).findOne({
+        const postulLlamado = await getRepository(
+          PostulanteLlamado,
+        ).findOne({
           where: {
             llamado: { id: info?.llamadoId },
             postulante: { id: info?.postulanteId },
           },
-          relations: ["llamado", "postulante", "archivos"],
+          relations: ['llamado', 'postulante', 'archivos'],
         });
         const fileType = await getRepository(TipoArchivo).findOne({
           id: info?.tipoArchivo,
         });
         if (!fileType || !postulLlamado) {
-          throw new Error("Error al cargar archivo al postulante");
+          throw new Error('Error al cargar archivo al postulante');
         }
 
         // TODO: tiene que ser parte del tribunal en el llamado.
-        const usuarioSolicitante = await getRepository(Usuario).findOne({
-          where: {
-            id: info?.solicitanteId,
+        const usuarioSolicitante = await getRepository(Usuario).findOne(
+          {
+            where: {
+              id: info?.solicitanteId,
+            },
+            relations: ['tribunales', 'tribunales.llamado'],
           },
-          relations: ["tribunales", "tribunales.llamado"],
-        });
+        );
 
         if (!usuarioSolicitante) {
-          throw new Error("Usuario solicitante no encontrado.");
+          throw new Error('Usuario solicitante no encontrado.');
         }
 
         const newArchivo = new Archivo();
@@ -166,7 +198,7 @@ const archivoController = {
         El usuario <span class="userColor">"${usuarioSolicitante.name} ${usuarioSolicitante?.lastName}"</span> agregó un archivo con nombre <span class="fileNameColor" >"${newArchivo.nombre}"</span> y de tipo archivo <span class="fileTypeColor" >"${newArchivo.tipoArchivo.nombre}"</span> al postulante <span class="userColor" >"${postulLlamado.postulante.nombres} ${postulLlamado.postulante.apellidos}"</span>.
       `;
 
-      const emailText = `
+        const emailText = `
         // El usuario <span class="userColor">"${usuarioSolicitante.name} ${usuarioSolicitante?.lastName}"</span> agregó un archivo con nombre <span class="fileNameColor" >"${newArchivo.nombre}"</span> y de tipo archivo <span class="fileTypeColor" >"${newArchivo.tipoArchivo.nombre}"</span> al postulante <span class="userColor" >"${postulLlamado.postulante.nombres} ${postulLlamado?.postulante?.apellidos}"</span> en el llamado "${postulLlamado?.llamado?.nombre}".
       `;
 
@@ -178,7 +210,7 @@ const archivoController = {
         });
         return {
           ok: true,
-          message: "Archivo cargado correctamente",
+          message: 'Archivo cargado correctamente',
         };
       } catch (error) {
         return {
