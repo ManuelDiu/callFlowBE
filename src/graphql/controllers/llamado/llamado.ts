@@ -917,7 +917,49 @@ const llamadoController: any = {
         console.log(error)
         return [];
       }
-    }
+    },
+    listarLlamadosByUser: async (
+      _: any,
+      { userId }: { userId: number },
+      context: any,
+    ): Promise<LlamadoList[]> => {
+      await checkAuth(context, [
+        EnumRoles.admin,
+        EnumRoles.tribunal,
+        EnumRoles.cordinador,
+      ]);
+
+      const llamados = await getRepository(Llamado).find({
+        relations: [
+          'estadoActual',
+          'cargo',
+          'postulantes',
+          'solicitante',
+          'miembrosTribunal',
+          'miembrosTribunal.usuario',
+          'categorias',
+        ],
+      });
+
+      const filterLlamados = llamados?.filter((llamado) => {
+          const existsOnTribunal =
+            llamado?.miembrosTribunal?.find(
+              (tribunal) =>
+                tribunal?.usuario?.id === userId &&
+                tribunal?.motivoRenuncia === ""
+            ) !== undefined;
+          return (
+            llamado?.solicitante?.id === userId || existsOnTribunal
+          );
+      });
+
+      const allLlamadosFormtted =
+      filterLlamados?.map((llamado) => {
+          return formatLlamadoToList(llamado);
+        }) || [];
+
+      return allLlamadosFormtted;
+    },
   },
   Subscription: {
     llamadoCreado: {
