@@ -439,8 +439,21 @@ const llamadoController: any = {
         }"</span> a <span class="estadoColor" >"${cambio?.nombre}"</span>
         `;
 
+        const emailText = `
+          El 
+          ${isAdmin ? `Administrador (CDP)` : `Miembro del tribunal`}
+          <span class="userColor">"${
+            historialItem?.usuario?.name
+          }"</span> cambió el estado del postulante <span class="userColor" >"${
+          cambio?.postulante?.postulante?.nombres
+        }"</span> a <span class="estadoColor" >"${
+          cambio?.nombre
+        }"</span>, en el llamado "${historialItem.llamado.nombre}".
+        `;
+
         await generateHistorialItem({
           text: text,
+          emailText: emailText,
           llamadoId: historialItem?.llamado?.id,
           userId: loggedUserInfo?.id,
         });
@@ -526,7 +539,17 @@ const llamadoController: any = {
             llamado: { id: data.llamadoId },
             postulante: { id: data.postulanteId },
           },
-          relations: ["postulante", "llamado", "etapa", "estadoActual"],
+          relations: [
+            "postulante",
+            "llamado",
+            "etapa",
+            "etapa.subetapas",
+            "etapa.subetapas.requisitos",
+            "etapa.subetapas.requisitos.allPuntajes",
+            "etapa.subetapas.requisitos.allPuntajes.postulante",
+            "etapa.subetapas.requisitos.allPuntajes.postulante.postulante",
+            "estadoActual",
+          ],
         });
         if (!postulLlamado) {
           throw new Error(
@@ -565,8 +588,25 @@ const llamadoController: any = {
         if (siguienteEtapa > cantidadDeEtapas) {
           throw new Error("No hay etapa a la que avanzar al postulante.");
         } else {
-          postulLlamado.etapa = etapasInLlamado[siguienteEtapa - 1];
-          console.log(etapasInLlamado[siguienteEtapa - 1]);
+          let sum = Number(0);
+          etapa.subetapas.map((currSub) =>
+            currSub?.requisitos?.map(
+              (currReq) =>
+                (sum += Number(
+                  currReq?.allPuntajes?.find(
+                    (puntaje) =>
+                      puntaje?.postulante?.postulante?.id === data.postulanteId
+                  )?.valor || 0
+                ))
+            )
+          );
+          if (sum >= postulLlamado.etapa.puntajeMin) {
+            postulLlamado.etapa = etapasInLlamado[siguienteEtapa - 1];
+          } else {
+            throw new Error(
+              "El postulante no avanzó de etapa debido a que no alcanza el mínimo de la misma."
+            );
+          }
         }
 
         if (postulLlamado.estadoActual.nombre !== "Cumple Requisitos") {
@@ -614,7 +654,7 @@ const llamadoController: any = {
     listarLlamados: async (
       _: any,
       { filters }: { filters: ListarLlamadoInputQuery },
-      context: any,
+      context: any
     ): Promise<LlamadoList[]> => {
       await checkAuth(context, [
         EnumRoles.admin,
@@ -626,13 +666,13 @@ const llamadoController: any = {
 
       const llamados = await getRepository(Llamado).find({
         relations: [
-          'estadoActual',
-          'cargo',
-          'postulantes',
-          'solicitante',
-          'miembrosTribunal',
-          'miembrosTribunal.usuario',
-          'categorias',
+          "estadoActual",
+          "cargo",
+          "postulantes",
+          "solicitante",
+          "miembrosTribunal",
+          "miembrosTribunal.usuario",
+          "categorias",
         ],
       });
 
@@ -666,28 +706,20 @@ const llamadoController: any = {
       if (filters?.selectedCategorias?.length > 0) {
         llamadosWithFilters?.forEach((item) => {
           const categoriasIdsOfLlamado = item?.categorias?.map(
-            (item) => item?.id,
+            (item) => item?.id
           );
 
           filters?.selectedCategorias?.forEach((catId) => {
             if (categoriasIdsOfLlamado?.includes(catId)) {
               // correct
-              if (
-                !llamadosWithFilters?.find(
-                  (llam) => llam.id === item?.id,
-                )
-              ) {
+              if (!llamadosWithFilters?.find((llam) => llam.id === item?.id)) {
                 llamadosWithFilters = [...llamadosWithFilters, item];
               }
             } else {
               // no correct
-              if (
-                llamadosWithFilters?.find(
-                  (llam) => llam.id === item?.id,
-                )
-              ) {
+              if (llamadosWithFilters?.find((llam) => llam.id === item?.id)) {
                 llamadosWithFilters = llamadosWithFilters?.filter(
-                  (llam) => llam?.id !== item?.id,
+                  (llam) => llam?.id !== item?.id
                 );
               }
             }
@@ -698,7 +730,7 @@ const llamadoController: any = {
       if (filters?.selectedPostulantes?.length > 0) {
         llamadosWithFilters?.forEach((item) => {
           const postulantesOfLlamado = item?.postulantes?.map(
-            (item) => item?.id,
+            (item) => item?.id
           );
           //1 , 2 ,3
 
@@ -706,22 +738,14 @@ const llamadoController: any = {
           filters?.selectedPostulantes?.forEach((postId) => {
             if (postulantesOfLlamado?.includes(postId)) {
               // correct
-              if (
-                !llamadosWithFilters?.find(
-                  (llam) => llam.id === item?.id,
-                )
-              ) {
+              if (!llamadosWithFilters?.find((llam) => llam.id === item?.id)) {
                 llamadosWithFilters = [...llamadosWithFilters, item];
               }
             } else {
               // no correct
-              if (
-                llamadosWithFilters?.find(
-                  (llam) => llam.id === item?.id,
-                )
-              ) {
+              if (llamadosWithFilters?.find((llam) => llam.id === item?.id)) {
                 llamadosWithFilters = llamadosWithFilters?.filter(
-                  (llam) => llam?.id !== item?.id,
+                  (llam) => llam?.id !== item?.id
                 );
               }
             }
@@ -912,7 +936,7 @@ const llamadoController: any = {
     listarPuntajesPostulantes: async (
       _: any,
       { llamadoId }: { llamadoId: number },
-      context: any,
+      context: any
     ): Promise<any> => {
       try {
         await checkAuth(context, [EnumRoles.admin]);
@@ -940,10 +964,50 @@ const llamadoController: any = {
 
         return dataToSend;
       } catch (error) {
-        console.log(error)
+        console.log(error);
         return [];
       }
-    }
+    },
+    listarLlamadosByUser: async (
+      _: any,
+      { userId }: { userId: number },
+      context: any
+    ): Promise<LlamadoList[]> => {
+      await checkAuth(context, [
+        EnumRoles.admin,
+        EnumRoles.tribunal,
+        EnumRoles.cordinador,
+      ]);
+
+      const llamados = await getRepository(Llamado).find({
+        relations: [
+          "estadoActual",
+          "cargo",
+          "postulantes",
+          "solicitante",
+          "miembrosTribunal",
+          "miembrosTribunal.usuario",
+          "categorias",
+        ],
+      });
+
+      const filterLlamados = llamados?.filter((llamado) => {
+        const existsOnTribunal =
+          llamado?.miembrosTribunal?.find(
+            (tribunal) =>
+              tribunal?.usuario?.id === userId &&
+              tribunal?.motivoRenuncia === ""
+          ) !== undefined;
+        return llamado?.solicitante?.id === userId || existsOnTribunal;
+      });
+
+      const allLlamadosFormtted =
+        filterLlamados?.map((llamado) => {
+          return formatLlamadoToList(llamado);
+        }) || [];
+
+      return allLlamadosFormtted;
+    },
   },
   Subscription: {
     llamadoCreado: {

@@ -272,6 +272,7 @@ const llamadoSchema = gql`
 
   type Query {
     listarLlamados(filters: ListarLlamadoInputQuery): [LlamadoList]
+    listarLlamadosByUser(userId: Int!): [LlamadoList]
     listarPuntajesPostulantes(llamadoId: Int): [PostulantePuntaje]
   }
 
