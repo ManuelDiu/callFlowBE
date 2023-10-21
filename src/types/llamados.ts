@@ -1,6 +1,7 @@
 import { TipoMiembro } from 'enums/TipoMiembro';
 import { CargoList } from './cargo';
 import { EstadoLlamadoEnum } from 'enums/EstadoLlamadoEnum';
+import { PostulanteList } from './posstulante';
 
 export type LlamadoList = {
   id: number;
@@ -126,4 +127,14 @@ export type CambiarTribunalInput = {
   id: number,
   tipoMiembro: string,
   orden: number,
+}
+
+
+export type EstadisticasGet = {
+  llamadosEnProceso: number;
+  llamadosFinalizados: number;
+  nuevosPostulantes: number;
+  llamadosRecientes: any[];
+  postulantesRecientes: PostulanteList[];
+  cantidadCargos: any[];
 }

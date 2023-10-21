@@ -49,6 +49,7 @@ const postulanteSchema = gql`
     apellidos: String
     documento: String!
     updatedAt: Date!
+    createdAt: Date
   }
 
   type PostulanteSubOutput {

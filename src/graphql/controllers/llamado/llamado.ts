@@ -1,52 +1,57 @@
-import { Archivo } from "entities/archivo/archivo.entity";
-import { Cambio } from "entities/cambio/cambio.entity";
-import { Cargo } from "entities/cargo/cargo.entity";
-import { Categoria } from "entities/categoria/categoria.entity";
-import { EstadoPosibleLlamado } from "entities/estadoLlamado/estadoLlamado.entity";
-import { EstadoPostulante } from "entities/estadoPostulante/estadoPostulante.entity";
-import { Etapa } from "entities/etapa/etapa.entity";
-import { HistorialItem } from "entities/historialitem/historialitem.entity";
-import { Llamado } from "entities/llamado/llamado.entity";
-import { Postulante } from "entities/postulante/postulante.entity";
-import { PostulanteLlamado } from "entities/postulanteLlamado/postulanteLlamado.entity";
-import { Requisito } from "entities/requisito/requisito.entity";
-import { Subetapa } from "entities/subetapa/subetapa.entity";
-import { TipoArchivo } from "entities/tipoArchivo/tipoArchivo.entity";
-import { TribunalLlamado } from "entities/tribunalLlamado/tribunalLlamado.entity";
-import { Usuario } from "entities/usuarios/usuarios.entity";
-import { EstadoLlamadoEnum } from "enums/EstadoLlamadoEnum";
-import { EstadoPostulanteEnum } from "enums/EstadoPostulanteEnum";
-import { ITR } from "enums/ITR";
-import { Roles as EnumRoles } from "enums/Roles";
-import { TipoMiembro } from "enums/TipoMiembro";
-import { PubSub } from "graphql-subscriptions";
-import { notificationEmail } from "mailTemplates/notificationEmail.template";
-import { isAdmin } from "middlewares/permission-handler.middleware";
-import { getRepository } from "typeorm";
+import { Archivo } from 'entities/archivo/archivo.entity';
+import { Cambio } from 'entities/cambio/cambio.entity';
+import { Cargo } from 'entities/cargo/cargo.entity';
+import { Categoria } from 'entities/categoria/categoria.entity';
+import { EstadoPosibleLlamado } from 'entities/estadoLlamado/estadoLlamado.entity';
+import { EstadoPostulante } from 'entities/estadoPostulante/estadoPostulante.entity';
+import { Etapa } from 'entities/etapa/etapa.entity';
+import { HistorialItem } from 'entities/historialitem/historialitem.entity';
+import { Llamado } from 'entities/llamado/llamado.entity';
+import { Postulante } from 'entities/postulante/postulante.entity';
+import { PostulanteLlamado } from 'entities/postulanteLlamado/postulanteLlamado.entity';
+import { Requisito } from 'entities/requisito/requisito.entity';
+import { Subetapa } from 'entities/subetapa/subetapa.entity';
+import { TipoArchivo } from 'entities/tipoArchivo/tipoArchivo.entity';
+import { TribunalLlamado } from 'entities/tribunalLlamado/tribunalLlamado.entity';
+import { Usuario } from 'entities/usuarios/usuarios.entity';
+import { EstadoLlamadoEnum } from 'enums/EstadoLlamadoEnum';
+import { EstadoPostulanteEnum } from 'enums/EstadoPostulanteEnum';
+import { ITR } from 'enums/ITR';
+import { Roles as EnumRoles } from 'enums/Roles';
+import { TipoMiembro } from 'enums/TipoMiembro';
+import { PubSub } from 'graphql-subscriptions';
+import { notificationEmail } from 'mailTemplates/notificationEmail.template';
+import { isAdmin } from 'middlewares/permission-handler.middleware';
+import moment from 'moment';
+import { getRepository } from 'typeorm';
 import {
   AvanzarEtapaData,
   EtapaGrilla,
   RequisitoGrilla,
   RequisitoType,
   SubEtapaGrilla,
-} from "types/grillaLlamado";
+} from 'types/grillaLlamado';
 import {
   AddFileToLlamado,
   CambiarCambioLlamadoInput,
   CambiarEstadoLlamadoInput,
   CambiarTribunalInput,
+  EstadisticasGet,
   LLamaodCreateInput,
   ListarLlamadoInputQuery,
   LlamadoCreateResponse,
   LlamadoList,
   RenunciarLlamadoInput,
-} from "types/llamados";
-import { MessageResponse } from "types/response";
-import { RequisitoList } from "types/template";
-import { checkAuth, getLoggedUserInfo } from "utilities/checkAuth";
-import { formatLlamadoToList, generateHistorialItem } from "utilities/llamado";
-import { MAIL_COLORS_UTILS } from "utilities/mail";
-import { userIsAdmin } from "utilities/user";
+} from 'types/llamados';
+import { MessageResponse } from 'types/response';
+import { RequisitoList } from 'types/template';
+import { checkAuth, getLoggedUserInfo } from 'utilities/checkAuth';
+import {
+  formatLlamadoToList,
+  generateHistorialItem,
+} from 'utilities/llamado';
+import { MAIL_COLORS_UTILS } from 'utilities/mail';
+import { userIsAdmin } from 'utilities/user';
 
 const llamadoSub = new PubSub();
 
@@ -55,12 +60,12 @@ const llamadoController: any = {
     prueba: async (_: any, __: any, context: any) => {
       await checkAuth(context, [EnumRoles.cordinador, EnumRoles.admin]);
 
-      return "solo llega si el usuario tiene rol cordinador o admin";
+      return 'solo llega si el usuario tiene rol cordinador o admin';
     },
     crearLlamado: async (
       _: any,
       { info }: { info: LLamaodCreateInput },
-      context: any
+      context: any,
     ): Promise<LlamadoCreateResponse> => {
       try {
         await checkAuth(context, [EnumRoles.admin]);
@@ -73,26 +78,28 @@ const llamadoController: any = {
           postulantes,
           categorias,
         } = info;
-        const existsLlamadoWithSameName = await getRepository(Llamado).findOne({
+        const existsLlamadoWithSameName = await getRepository(
+          Llamado,
+        ).findOne({
           nombre: llamadoInfo?.nombre,
         });
         if (existsLlamadoWithSameName) {
-          throw new Error("Ya existe un llamado con este nombre");
+          throw new Error('Ya existe un llamado con este nombre');
         }
         const selectedCargo = await getRepository(Cargo).findOne({
           id: llamadoInfo?.cargo,
         });
         if (!selectedCargo) {
-          throw new Error("Cargo invalido");
+          throw new Error('Cargo invalido');
         }
         const solicitante = await getRepository(Usuario).findOne({
           id: llamadoInfo?.solicitante,
         });
         if (!solicitante) {
-          throw new Error("Solicitante invalido");
+          throw new Error('Solicitante invalido');
         }
         const llamadoInitialState = await getRepository(
-          EstadoPosibleLlamado
+          EstadoPosibleLlamado,
         ).findOne({ nombre: EstadoLlamadoEnum.creado });
 
         const llamado = new Llamado();
@@ -121,7 +128,7 @@ const llamadoController: any = {
             });
             // traigo el estado inicial
             const estadoInicial = await getRepository(
-              EstadoPostulante
+              EstadoPostulante,
             ).findOne({ nombre: EstadoPostulanteEnum.cumpleRequisito });
             if (postulante) {
               const postulante_llamado = new PostulanteLlamado();
@@ -129,9 +136,11 @@ const llamadoController: any = {
               postulante_llamado.postulante = postulante;
               postulante_llamado.estadoActual = estadoInicial;
               createdPostulantesLlamado?.push(postulante_llamado);
-              await getRepository(PostulanteLlamado).save(postulante_llamado);
+              await getRepository(PostulanteLlamado).save(
+                postulante_llamado,
+              );
             }
-          })
+          }),
         );
         await crearPostulantes;
 
@@ -140,12 +149,12 @@ const llamadoController: any = {
             const usuario = await getRepository(Usuario).findOne(
               { id: tribunal?.id },
               {
-                relations: ["roles"],
-              }
+                relations: ['roles'],
+              },
             );
             if (usuario) {
               const hasTribunalRole = usuario?.roles?.find(
-                (item) => item?.nombre === EnumRoles.tribunal
+                (item) => item?.nombre === EnumRoles.tribunal,
               );
               if (hasTribunalRole) {
                 const tribunal_llamado = new TribunalLlamado();
@@ -153,11 +162,13 @@ const llamadoController: any = {
                 tribunal_llamado.usuario = usuario;
                 tribunal_llamado.tipoMiembro = tribunal?.type;
                 tribunal_llamado.orden = tribunal?.order;
-                tribunal_llamado.motivoRenuncia = "";
-                await getRepository(TribunalLlamado).save(tribunal_llamado);
+                tribunal_llamado.motivoRenuncia = '';
+                await getRepository(TribunalLlamado).save(
+                  tribunal_llamado,
+                );
               }
             }
-          })
+          }),
         );
         await crearTribunales;
 
@@ -172,7 +183,9 @@ const llamadoController: any = {
             newEtapa.llamado = newLlamado;
             newEtapa.total = 100;
             newEtapa.puntajeMin = etapa?.puntajeMinimo;
-            const createdEtapa = await getRepository(Etapa).save(newEtapa);
+            const createdEtapa = await getRepository(Etapa).save(
+              newEtapa,
+            );
             const createSubEtapas = Promise.all(
               etapa?.subetapas?.map(async (subetapa) => {
                 const newSubEtapa = new Subetapa();
@@ -180,9 +193,9 @@ const llamadoController: any = {
                 newSubEtapa.puntajeMaximo = subetapa?.puntajeMaximo;
                 newSubEtapa.etapa = createdEtapa;
                 newSubEtapa.puntajeTotal = 0;
-                const createdSubEtapa = await getRepository(Subetapa).save(
-                  newSubEtapa
-                );
+                const createdSubEtapa = await getRepository(
+                  Subetapa,
+                ).save(newSubEtapa);
                 const crearRequisitos = Promise.all(
                   subetapa?.requisitos?.map(async (requisito) => {
                     const newRequisito = new Requisito();
@@ -191,13 +204,13 @@ const llamadoController: any = {
                     newRequisito.puntajeSugerido = requisito?.puntaje;
                     newRequisito.subetapa = createdSubEtapa;
                     await getRepository(Requisito).save(newRequisito);
-                  })
+                  }),
                 );
                 await crearRequisitos;
-              })
+              }),
             );
             await createSubEtapas;
-          })
+          }),
         );
 
         await createEtapas;
@@ -211,7 +224,7 @@ const llamadoController: any = {
             if (categoria) {
               categoriasToInsert?.push(categoria);
             }
-          })
+          }),
         );
         await categoriasCreate;
         llamado.categorias = categoriasToInsert;
@@ -222,12 +235,12 @@ const llamadoController: any = {
             id: newLlamado?.id,
           },
           {
-            relations: ["estadoActual", "cargo", "postulantes"],
-          }
+            relations: ['estadoActual', 'cargo', 'postulantes'],
+          },
         );
         const text = `
         El ${
-          isAdmin ? "Admin" : "Miembro del tribunal"
+          isAdmin ? 'Admin' : 'Miembro del tribunal'
         } <span class="userColor" >${loggedUserInfo?.name} ${
           loggedUserInfo?.lastName
         }</span> creo el llamado '${llamado?.nombre}'`;
@@ -238,19 +251,20 @@ const llamadoController: any = {
           userId: loggedUserInfo?.id,
         });
 
-        llamadoSub.publish("List_Llamados", {
+        llamadoSub.publish('List_Llamados', {
           llamadoCreado: formatLlamadoToList(loadedLlamadoInfo),
         });
 
         return {
           ok: true,
-          message: "Llamado creado correctamente",
+          message: 'Llamado creado correctamente',
         };
       } catch (error) {
-        if (error?.message?.includes("Duplicate entry")) {
+        if (error?.message?.includes('Duplicate entry')) {
           return {
             ok: false,
-            message: "Ya existe un llamado con este nombre o referencia",
+            message:
+              'Ya existe un llamado con este nombre o referencia',
           };
         }
         return {
@@ -262,7 +276,7 @@ const llamadoController: any = {
     deshabilitarLlamados: async (
       _: any,
       { llamados }: { llamados: number[] },
-      context: any
+      context: any,
     ): Promise<LlamadoCreateResponse> => {
       try {
         await checkAuth(context, [EnumRoles.admin]);
@@ -273,35 +287,35 @@ const llamadoController: any = {
               id: llamadoId,
             });
             const nuevoEstado = await getRepository(
-              EstadoPosibleLlamado
+              EstadoPosibleLlamado,
             ).findOne({ nombre: EstadoLlamadoEnum.eliminado });
             if (nuevoEstado && llamado) {
               llamado.estadoActual = nuevoEstado;
               await getRepository(Llamado).save(llamado);
             }
             const llamadoInfo = formatLlamadoToList(llamado);
-            llamadoSub.publish("List_Llamados", {
+            llamadoSub.publish('List_Llamados', {
               llamadoCreado: llamadoInfo,
             });
-          })
+          }),
         );
         await disabledLlamados;
 
         return {
           ok: true,
-          message: "Llamados deshabilitados correctamente",
+          message: 'Llamados deshabilitados correctamente',
         };
       } catch (error) {
         return {
           ok: false,
-          message: error?.message || "Error al deshabilitar llamados",
+          message: error?.message || 'Error al deshabilitar llamados',
         };
       }
     },
     cambiarEstadoLlamado: async (
       _: any,
       { info }: { info: CambiarEstadoLlamadoInput },
-      context: any
+      context: any,
     ) => {
       try {
         await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal]);
@@ -312,20 +326,22 @@ const llamadoController: any = {
           id: info.llamadoId,
         });
         if (!llamado) {
-          throw new Error("El llamado no existe");
+          throw new Error('El llamado no existe');
         }
-        const estado = await getRepository(EstadoPosibleLlamado).findOne({
+        const estado = await getRepository(
+          EstadoPosibleLlamado,
+        ).findOne({
           nombre: info.estado,
         });
         if (!estado) {
-          throw new Error("El estado no existe");
+          throw new Error('El estado no existe');
         }
         const etapa = await getRepository(Etapa).findOne({
           id: info.etapa,
         });
 
         if (!etapa) {
-          throw new Error("La etapa no existe");
+          throw new Error('La etapa no existe');
         }
         // create historial item
         // send mail
@@ -337,7 +353,7 @@ const llamadoController: any = {
 
         const text = `
           El ${
-            isAdmin ? "Admin" : "Miembro del tribunal"
+            isAdmin ? 'Admin' : 'Miembro del tribunal'
           } <span class="userColor" >${loggedUserInfo?.name} ${
           loggedUserInfo?.lastName
         }</span>
@@ -360,22 +376,23 @@ const llamadoController: any = {
             id: llamado?.id,
           },
           {
-            relations: ["estadoActual", "cargo", "postulantes"],
-          }
+            relations: ['estadoActual', 'cargo', 'postulantes'],
+          },
         );
-        llamadoSub.publish("List_Llamados", {
+        llamadoSub.publish('List_Llamados', {
           llamadoCreado: formatLlamadoToList(loadedLlamadoInfo),
         });
 
         return {
           ok: true,
-          message: "Estado actualizado correctamente",
+          message: 'Estado actualizado correctamente',
         };
       } catch (error) {
         console.log(error);
         return {
           ok: false,
-          message: error?.message || "Error al cambiar estado del llamado",
+          message:
+            error?.message || 'Error al cambiar estado del llamado',
         };
       }
     },
@@ -383,50 +400,56 @@ const llamadoController: any = {
     cambiarCambioLlamado: async (
       _: any,
       { info }: { info: CambiarCambioLlamadoInput },
-      context: any
+      context: any,
     ) => {
       try {
         await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal]);
         const loggedUserInfo = await getLoggedUserInfo(context);
         const isAdmin = userIsAdmin(loggedUserInfo);
-        const historialItem = await getRepository(HistorialItem).findOne(
+        const historialItem = await getRepository(
+          HistorialItem,
+        ).findOne(
           {
             id: info.historialItemId,
           },
           {
-            relations: ["usuario", "llamado", "cambio"],
-          }
+            relations: ['usuario', 'llamado', 'cambio'],
+          },
         );
         const cambio = await getRepository(Cambio).findOne(
           {
             id: info?.cambioId,
           },
           {
-            relations: ["postulante", "postulante.postulante"],
-          }
+            relations: ['postulante', 'postulante.postulante'],
+          },
         );
         if (!cambio || !historialItem) {
-          throw new Error("Error al validar los datos enviados");
+          throw new Error('Error al validar los datos enviados');
         }
         cambio.cambio = info?.accept;
         await getRepository(Cambio).save(cambio);
 
         if (info?.accept === true) {
-          console.log("si, accept");
+          console.log('si, accept');
           const postulanteLlamado = await getRepository(
-            PostulanteLlamado
+            PostulanteLlamado,
           ).findOne({
             id: cambio?.postulante?.id,
           });
-          console.log("postulanteLlamadoId", postulanteLlamado?.id);
+          console.log('postulanteLlamadoId', postulanteLlamado?.id);
           if (!postulanteLlamado) {
-            throw new Error("Error al validar los datos enviados");
+            throw new Error('Error al validar los datos enviados');
           }
-          const newEstado = await getRepository(EstadoPostulante).findOne({
+          const newEstado = await getRepository(
+            EstadoPostulante,
+          ).findOne({
             nombre: cambio.nombre,
           });
           postulanteLlamado.estadoActual = newEstado;
-          await getRepository(PostulanteLlamado).save(postulanteLlamado);
+          await getRepository(PostulanteLlamado).save(
+            postulanteLlamado,
+          );
         }
 
         const text = `
@@ -436,7 +459,9 @@ const llamadoController: any = {
             historialItem?.usuario?.name
           }"</span> cambió el estado del postulante <span class="userColor" >"${
           cambio?.postulante?.postulante?.nombres
-        }"</span> a <span class="estadoColor" >"${cambio?.nombre}"</span>
+        }"</span> a <span class="estadoColor" >"${
+          cambio?.nombre
+        }"</span>
         `;
 
         const emailText = `
@@ -460,20 +485,21 @@ const llamadoController: any = {
 
         return {
           ok: true,
-          message: "Estado actualizado correctamente",
+          message: 'Estado actualizado correctamente',
         };
       } catch (error) {
         return {
           ok: false,
           message:
-            error?.message || "Error al cambiar el estado de este postulante",
+            error?.message ||
+            'Error al cambiar el estado de este postulante',
         };
       }
     },
     renunciarLlamado: async (
       _: any,
       { info }: { info: RenunciarLlamadoInput },
-      context: any
+      context: any,
     ) => {
       try {
         await checkAuth(context, [EnumRoles.tribunal]);
@@ -485,21 +511,23 @@ const llamadoController: any = {
           id: info.userId,
         });
         if (!llamado || !usuario) {
-          throw new Error("Usuario o llamado invalido");
+          throw new Error('Usuario o llamado invalido');
         }
 
-        const tribunalLlamado = await getRepository(TribunalLlamado).findOne(
+        const tribunalLlamado = await getRepository(
+          TribunalLlamado,
+        ).findOne(
           {
             usuario: usuario,
             llamado: llamado,
           },
           {
-            relations: ["llamado", "usuario"],
-          }
+            relations: ['llamado', 'usuario'],
+          },
         );
 
         if (!tribunalLlamado) {
-          throw new Error("Usuario o llamado invalido");
+          throw new Error('Usuario o llamado invalido');
         }
         tribunalLlamado.motivoRenuncia = info.motivoRenuncia;
         await getRepository(TribunalLlamado).save(tribunalLlamado);
@@ -516,59 +544,61 @@ const llamadoController: any = {
         });
         return {
           ok: true,
-          message: "Renunciaste al tribunal correctamente",
+          message: 'Renunciaste al tribunal correctamente',
         };
       } catch (error) {
         return {
           ok: false,
-          message: error?.message || "Error al renunciar al llamado",
+          message: error?.message || 'Error al renunciar al llamado',
         };
       }
     },
     avanzarEtapaPostulanteInLlamado: async (
       _: any,
       { data }: { data: AvanzarEtapaData },
-      context: any
+      context: any,
     ): Promise<MessageResponse> => {
       try {
         // await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal, EnumRoles.cordinador]);
-        console.log("postulanteId es", data.postulanteId);
-        console.log("llamadoId es", data.llamadoId);
-        const postulLlamado = await getRepository(PostulanteLlamado).findOne({
+        console.log('postulanteId es', data.postulanteId);
+        console.log('llamadoId es', data.llamadoId);
+        const postulLlamado = await getRepository(
+          PostulanteLlamado,
+        ).findOne({
           where: {
             llamado: { id: data.llamadoId },
             postulante: { id: data.postulanteId },
           },
           relations: [
-            "postulante",
-            "llamado",
-            "etapa",
-            "etapa.subetapas",
-            "etapa.subetapas.requisitos",
-            "etapa.subetapas.requisitos.allPuntajes",
-            "etapa.subetapas.requisitos.allPuntajes.postulante",
-            "etapa.subetapas.requisitos.allPuntajes.postulante.postulante",
-            "estadoActual",
+            'postulante',
+            'llamado',
+            'etapa',
+            'etapa.subetapas',
+            'etapa.subetapas.requisitos',
+            'etapa.subetapas.requisitos.allPuntajes',
+            'etapa.subetapas.requisitos.allPuntajes.postulante',
+            'etapa.subetapas.requisitos.allPuntajes.postulante.postulante',
+            'estadoActual',
           ],
         });
         if (!postulLlamado) {
           throw new Error(
-            "No se ha encontrado el postulante en el llamado especificado."
+            'No se ha encontrado el postulante en el llamado especificado.',
           );
         }
-        console.log("PostulanteLlamado", postulLlamado.estadoActual);
+        console.log('PostulanteLlamado', postulLlamado.estadoActual);
 
         const etapa = postulLlamado.etapa;
         const etapasInLlamado = await getRepository(Etapa).find({
           where: {
             llamado: { id: data.llamadoId },
           },
-          order: { createdAt: "ASC" },
-          relations: ["llamado"],
+          order: { createdAt: 'ASC' },
+          relations: ['llamado'],
         });
 
         const indexEtapaActual = etapasInLlamado.findIndex(
-          (currEtapa) => currEtapa.id === etapa.id
+          (currEtapa) => currEtapa.id === etapa.id,
         );
         let cantidadDeEtapas = 0;
         let etapaActual = data.currentEtapa;
@@ -578,15 +608,17 @@ const llamadoController: any = {
 
         if (etapaActual < 0 || etapaActual > etapasInLlamado.length) {
           throw new Error(
-            "El índice de la etapa actual recibido no es válido. (menor a 0 o mayor a la cantidad de etapas)"
+            'El índice de la etapa actual recibido no es válido. (menor a 0 o mayor a la cantidad de etapas)',
           );
         }
 
         const siguienteEtapa = etapaActual + 1;
-        console.log("etapa actual ", etapaActual);
-        console.log("siguienteEtapa ", siguienteEtapa);
+        console.log('etapa actual ', etapaActual);
+        console.log('siguienteEtapa ', siguienteEtapa);
         if (siguienteEtapa > cantidadDeEtapas) {
-          throw new Error("No hay etapa a la que avanzar al postulante.");
+          throw new Error(
+            'No hay etapa a la que avanzar al postulante.',
+          );
         } else {
           let sum = Number(0);
           etapa.subetapas.map((currSub) =>
@@ -595,66 +627,75 @@ const llamadoController: any = {
                 (sum += Number(
                   currReq?.allPuntajes?.find(
                     (puntaje) =>
-                      puntaje?.postulante?.postulante?.id === data.postulanteId
-                  )?.valor || 0
-                ))
-            )
+                      puntaje?.postulante?.postulante?.id ===
+                      data.postulanteId,
+                  )?.valor || 0,
+                )),
+            ),
           );
           if (sum >= postulLlamado.etapa.puntajeMin) {
             postulLlamado.etapa = etapasInLlamado[siguienteEtapa - 1];
           } else {
             throw new Error(
-              "El postulante no avanzó de etapa debido a que no alcanza el mínimo de la misma."
+              'El postulante no avanzó de etapa debido a que no alcanza el mínimo de la misma.',
             );
           }
         }
 
-        if (postulLlamado.estadoActual.nombre !== "Cumple Requisitos") {
+        if (postulLlamado.estadoActual.nombre !== 'Cumple Requisitos') {
           throw new Error(
-            "El postulante debe de encontrarse en el estado 'Cumple Requisitos' para este llamado."
+            "El postulante debe de encontrarse en el estado 'Cumple Requisitos' para este llamado.",
           );
         }
 
         await getRepository(PostulanteLlamado).save(postulLlamado);
         return {
           ok: true,
-          message: "Etapa del postulante avanzada correctamente.",
+          message: 'Etapa del postulante avanzada correctamente.',
         };
       } catch (error) {
-        console.log("AvanzarEtapaPostulanteInLlamado Error", error);
+        console.log('AvanzarEtapaPostulanteInLlamado Error', error);
         return {
           ok: false,
           message: error?.message,
         };
       }
     },
-    cambiarMiembroTribunal: async (_: any, { data }: { data: CambiarTribunalInput }, context: any) => {
+    cambiarMiembroTribunal: async (
+      _: any,
+      { data }: { data: CambiarTribunalInput },
+      context: any,
+    ) => {
       try {
-        await checkAuth(context ,[EnumRoles.admin]);
-        const tribunal = await getRepository(TribunalLlamado).findOne({ id:data?.id });
+        await checkAuth(context, [EnumRoles.admin]);
+        const tribunal = await getRepository(TribunalLlamado).findOne({
+          id: data?.id,
+        });
         if (!tribunal) {
-          throw new Error("Erorr al obtener la informacion")
+          throw new Error('Erorr al obtener la informacion');
         }
         tribunal.orden = data.orden;
         tribunal.tipoMiembro = data.tipoMiembro as TipoMiembro;
         await getRepository(TribunalLlamado).save(tribunal);
         return {
           ok: true,
-          message: "Miembro actualizado correctamente",
-        }
+          message: 'Miembro actualizado correctamente',
+        };
       } catch (error) {
         return {
           ok: false,
-          message: error?.message || "Error al cambiar el miembro del tribunal",
-        }
+          message:
+            error?.message ||
+            'Error al cambiar el miembro del tribunal',
+        };
       }
-    }
+    },
   },
   Query: {
     listarLlamados: async (
       _: any,
       { filters }: { filters: ListarLlamadoInputQuery },
-      context: any
+      context: any,
     ): Promise<LlamadoList[]> => {
       await checkAuth(context, [
         EnumRoles.admin,
@@ -666,13 +707,13 @@ const llamadoController: any = {
 
       const llamados = await getRepository(Llamado).find({
         relations: [
-          "estadoActual",
-          "cargo",
-          "postulantes",
-          "solicitante",
-          "miembrosTribunal",
-          "miembrosTribunal.usuario",
-          "categorias",
+          'estadoActual',
+          'cargo',
+          'postulantes',
+          'solicitante',
+          'miembrosTribunal',
+          'miembrosTribunal.usuario',
+          'categorias',
         ],
       });
 
@@ -684,10 +725,11 @@ const llamadoController: any = {
             llamado?.miembrosTribunal?.find(
               (tribunal) =>
                 tribunal?.usuario?.id === loggedUserInfo?.id &&
-                tribunal?.motivoRenuncia === ""
+                tribunal?.motivoRenuncia === '',
             ) !== undefined;
           return (
-            llamado?.solicitante?.id === loggedUserInfo?.id || existsOnTribunal
+            llamado?.solicitante?.id === loggedUserInfo?.id ||
+            existsOnTribunal
           );
         }
       });
@@ -706,20 +748,28 @@ const llamadoController: any = {
       if (filters?.selectedCategorias?.length > 0) {
         llamadosWithFilters?.forEach((item) => {
           const categoriasIdsOfLlamado = item?.categorias?.map(
-            (item) => item?.id
+            (item) => item?.id,
           );
 
           filters?.selectedCategorias?.forEach((catId) => {
             if (categoriasIdsOfLlamado?.includes(catId)) {
               // correct
-              if (!llamadosWithFilters?.find((llam) => llam.id === item?.id)) {
+              if (
+                !llamadosWithFilters?.find(
+                  (llam) => llam.id === item?.id,
+                )
+              ) {
                 llamadosWithFilters = [...llamadosWithFilters, item];
               }
             } else {
               // no correct
-              if (llamadosWithFilters?.find((llam) => llam.id === item?.id)) {
+              if (
+                llamadosWithFilters?.find(
+                  (llam) => llam.id === item?.id,
+                )
+              ) {
                 llamadosWithFilters = llamadosWithFilters?.filter(
-                  (llam) => llam?.id !== item?.id
+                  (llam) => llam?.id !== item?.id,
                 );
               }
             }
@@ -730,7 +780,7 @@ const llamadoController: any = {
       if (filters?.selectedPostulantes?.length > 0) {
         llamadosWithFilters?.forEach((item) => {
           const postulantesOfLlamado = item?.postulantes?.map(
-            (item) => item?.id
+            (item) => item?.id,
           );
           //1 , 2 ,3
 
@@ -738,14 +788,22 @@ const llamadoController: any = {
           filters?.selectedPostulantes?.forEach((postId) => {
             if (postulantesOfLlamado?.includes(postId)) {
               // correct
-              if (!llamadosWithFilters?.find((llam) => llam.id === item?.id)) {
+              if (
+                !llamadosWithFilters?.find(
+                  (llam) => llam.id === item?.id,
+                )
+              ) {
                 llamadosWithFilters = [...llamadosWithFilters, item];
               }
             } else {
               // no correct
-              if (llamadosWithFilters?.find((llam) => llam.id === item?.id)) {
+              if (
+                llamadosWithFilters?.find(
+                  (llam) => llam.id === item?.id,
+                )
+              ) {
                 llamadosWithFilters = llamadosWithFilters?.filter(
-                  (llam) => llam?.id !== item?.id
+                  (llam) => llam?.id !== item?.id,
                 );
               }
             }
@@ -771,7 +829,7 @@ const llamadoController: any = {
     getLlamadoById: async (
       _: any,
       { llamadoId }: { llamadoId: number },
-      context: any
+      context: any,
     ) => {
       try {
         await checkAuth(context, [
@@ -785,37 +843,37 @@ const llamadoController: any = {
           { id: llamadoId },
           {
             relations: [
-              "etapas",
-              "etapaActual",
-              "cargo",
-              "solicitante",
-              "etapas.subetapas",
-              "etapas.subetapas.requisitos",
-              "categorias",
-              "postulantes",
-              "postulantes.postulante",
-              "postulantes.estadoActual",
-              "miembrosTribunal",
-              "miembrosTribunal.usuario",
-              "historiales",
-              "historiales.cambio",
-              "archivos",
-              "archivos.tipoArchivo",
-              "archivosFirma",
-              "archivosFirma.firmas",
-              "archivosFirma.firmas.usuario",
-              "estadoActual",
+              'etapas',
+              'etapaActual',
+              'cargo',
+              'solicitante',
+              'etapas.subetapas',
+              'etapas.subetapas.requisitos',
+              'categorias',
+              'postulantes',
+              'postulantes.postulante',
+              'postulantes.estadoActual',
+              'miembrosTribunal',
+              'miembrosTribunal.usuario',
+              'historiales',
+              'historiales.cambio',
+              'archivos',
+              'archivos.tipoArchivo',
+              'archivosFirma',
+              'archivosFirma.firmas',
+              'archivosFirma.firmas.usuario',
+              'estadoActual',
             ],
-          }
+          },
         );
         if (!llamadoInfo) {
-          throw new Error("No existe el llamado");
+          throw new Error('No existe el llamado');
         }
         const existsOnTribunal =
           llamadoInfo?.miembrosTribunal?.find(
             (tribunal) =>
               tribunal?.usuario?.id === loggedUserInfo?.id &&
-              tribunal?.motivoRenuncia === ""
+              tribunal?.motivoRenuncia === '',
           ) !== undefined;
         const isParticipe =
           llamadoInfo?.solicitante?.id === loggedUserInfo?.id ||
@@ -823,7 +881,7 @@ const llamadoController: any = {
 
         if (!isParticipe && !isAdmin) {
           throw new Error(
-            "Error al acceder a la informacion de llamado, permisos invalidos"
+            'Error al acceder a la informacion de llamado, permisos invalidos',
           );
         }
         return {
@@ -836,31 +894,36 @@ const llamadoController: any = {
     },
     getEtapaActualPostInLlamado: async (
       _: any,
-      { llamadoId, postulanteId }: { llamadoId: number; postulanteId: number },
-      context: any
+      {
+        llamadoId,
+        postulanteId,
+      }: { llamadoId: number; postulanteId: number },
+      context: any,
     ) => {
       try {
         // await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal, EnumRoles.cordinador]);
-        const postulLlamado = await getRepository(PostulanteLlamado).findOne({
+        const postulLlamado = await getRepository(
+          PostulanteLlamado,
+        ).findOne({
           where: {
             llamado: { id: llamadoId },
             postulante: { id: postulanteId },
           },
           relations: [
-            "postulante",
-            "llamado",
-            "etapa",
-            "etapa.subetapas",
-            "etapa.subetapas.requisitos",
-            "etapa.subetapas.requisitos.allPuntajes",
-            "etapa.subetapas.requisitos.allPuntajes.postulante",
-            "etapa.subetapas.requisitos.allPuntajes.postulante.postulante",
+            'postulante',
+            'llamado',
+            'etapa',
+            'etapa.subetapas',
+            'etapa.subetapas.requisitos',
+            'etapa.subetapas.requisitos.allPuntajes',
+            'etapa.subetapas.requisitos.allPuntajes.postulante',
+            'etapa.subetapas.requisitos.allPuntajes.postulante.postulante',
           ],
         });
 
         if (!postulLlamado) {
           throw new Error(
-            "No se ha encontrado el postulante en el llamado especificado."
+            'No se ha encontrado el postulante en el llamado especificado.',
           );
         }
         // console.log("PostulanteLlamado", postulLlamado.etapa);
@@ -869,12 +932,12 @@ const llamadoController: any = {
           where: {
             llamado: { id: llamadoId },
           },
-          order: { createdAt: "ASC" },
-          relations: ["llamado"],
+          order: { createdAt: 'ASC' },
+          relations: ['llamado'],
         });
 
         const indexEtapaActual = etapasInLlamado.findIndex(
-          (currEtapa) => currEtapa.id === etapa.id
+          (currEtapa) => currEtapa.id === etapa.id,
         );
         let cantidadDeEtapas = 0;
         let etapaActual = 0;
@@ -890,10 +953,11 @@ const llamadoController: any = {
               (sum += Number(
                 currReq?.allPuntajes?.find(
                   (puntaje) =>
-                    puntaje?.postulante?.postulante?.id === postulanteId
-                )?.valor || 0
-              ))
-          )
+                    puntaje?.postulante?.postulante?.id ===
+                    postulanteId,
+                )?.valor || 0,
+              )),
+          ),
         );
 
         const currentPostulanteEtapa: EtapaGrilla = {
@@ -920,10 +984,11 @@ const llamadoController: any = {
                     puntaje:
                       currReq?.allPuntajes?.find(
                         (puntaje) =>
-                          puntaje?.postulante?.postulante?.id === postulanteId
+                          puntaje?.postulante?.postulante?.id ===
+                          postulanteId,
                       )?.valor || 0,
                   };
-                }
+                },
               ),
             };
           }),
@@ -936,31 +1001,47 @@ const llamadoController: any = {
     listarPuntajesPostulantes: async (
       _: any,
       { llamadoId }: { llamadoId: number },
-      context: any
+      context: any,
     ): Promise<any> => {
       try {
         await checkAuth(context, [EnumRoles.admin]);
-        const llamado = await getRepository(Llamado).findOne({ id: llamadoId }, { relations: ['postulantes', 'postulantes.estadoActual', 'postulantes.puntajes', 'postulantes.postulante', 'postulantes.puntajes.requisito'] });
+        const llamado = await getRepository(Llamado).findOne(
+          { id: llamadoId },
+          {
+            relations: [
+              'postulantes',
+              'postulantes.estadoActual',
+              'postulantes.puntajes',
+              'postulantes.postulante',
+              'postulantes.puntajes.requisito',
+            ],
+          },
+        );
         if (!llamado) {
-          throw new Error("llamado invalido");
+          throw new Error('llamado invalido');
         }
 
         const dataToSend: any[] = [];
 
-        await Promise.all(llamado?.postulantes?.map(async (post) => {
-          const item = {
-            postulanteId: post?.postulante?.id,
-            requisitos: post?.puntajes?.map((puntaje) => {
-              return {
-                requisitoId: puntaje?.requisito?.id,
-                puntaje: puntaje?.valor,
-              }
-            })
-          }
-          if (post.estadoActual?.nombre === EstadoPostulanteEnum.cumpleRequisito) {
-            dataToSend?.push(item);
-          }
-        }))
+        await Promise.all(
+          llamado?.postulantes?.map(async (post) => {
+            const item = {
+              postulanteId: post?.postulante?.id,
+              requisitos: post?.puntajes?.map((puntaje) => {
+                return {
+                  requisitoId: puntaje?.requisito?.id,
+                  puntaje: puntaje?.valor,
+                };
+              }),
+            };
+            if (
+              post.estadoActual?.nombre ===
+              EstadoPostulanteEnum.cumpleRequisito
+            ) {
+              dataToSend?.push(item);
+            }
+          }),
+        );
 
         return dataToSend;
       } catch (error) {
@@ -971,7 +1052,7 @@ const llamadoController: any = {
     listarLlamadosByUser: async (
       _: any,
       { userId }: { userId: number },
-      context: any
+      context: any,
     ): Promise<LlamadoList[]> => {
       await checkAuth(context, [
         EnumRoles.admin,
@@ -981,13 +1062,13 @@ const llamadoController: any = {
 
       const llamados = await getRepository(Llamado).find({
         relations: [
-          "estadoActual",
-          "cargo",
-          "postulantes",
-          "solicitante",
-          "miembrosTribunal",
-          "miembrosTribunal.usuario",
-          "categorias",
+          'estadoActual',
+          'cargo',
+          'postulantes',
+          'solicitante',
+          'miembrosTribunal',
+          'miembrosTribunal.usuario',
+          'categorias',
         ],
       });
 
@@ -996,7 +1077,7 @@ const llamadoController: any = {
           llamado?.miembrosTribunal?.find(
             (tribunal) =>
               tribunal?.usuario?.id === userId &&
-              tribunal?.motivoRenuncia === ""
+              tribunal?.motivoRenuncia === '',
           ) !== undefined;
         return llamado?.solicitante?.id === userId || existsOnTribunal;
       });
@@ -1008,10 +1089,151 @@ const llamadoController: any = {
 
       return allLlamadosFormtted;
     },
+    listarEstadisticas: async (
+      _: any,
+      { itr, meses }: { itr: any, meses: string },
+      context: any,
+    ): Promise<EstadisticasGet> => {
+      try {
+        await checkAuth(context, [EnumRoles.admin]);
+        let allLlamados: Llamado[] = [];
+
+        if (!itr || itr === '') {
+          console.log('si1');
+          allLlamados = await getRepository(Llamado).find({
+            relations: [
+              'estadoActual',
+              'cargo',
+              'postulantes',
+              'postulantes.postulante',
+              'solicitante',
+              'miembrosTribunal',
+              'miembrosTribunal.usuario',
+              'categorias',
+            ],
+          });
+        } else {
+          allLlamados = await getRepository(Llamado).find({
+            where: {
+              itr: itr,
+            },
+            relations: [
+              'estadoActual',
+              'cargo',
+              'postulantes',
+              'postulantes.postulante',
+              'solicitante',
+              'miembrosTribunal',
+              'miembrosTribunal.usuario',
+              'categorias',
+            ],
+          });
+        }
+
+        console.log("meses is", meses)
+        const llamadosRecientes = allLlamados.filter((item) =>
+          {
+            const prevDate =  moment().subtract('months', Number(meses || "3"));
+            console.log("createdAt", moment(item?.createdAt))
+            console.log("prevDate", prevDate)
+            return moment(item?.createdAt).isAfter(prevDate)
+          },
+        );
+        console.log("llamadosRecientes", llamadosRecientes)
+
+        let countLlamadosEnProgreso = 0;
+        let countLlamadosFinalizados = 0;
+        let countPostulantesNuevos = 0;
+        let postulantesRecientes: any[] = [];
+        let cantidadCargos : any[] = [];
+
+        llamadosRecientes.forEach((llam) => {
+          if (
+            llam?.estadoActual?.nombre === EstadoLlamadoEnum.finalizado
+          ) {
+            countLlamadosFinalizados++;
+          } else {
+            if (
+              llam?.estadoActual?.nombre !== EstadoLlamadoEnum.eliminado
+            ) {
+              countLlamadosEnProgreso++;
+            }
+          }
+          countPostulantesNuevos += llam.postulantes?.length || 0;
+          llam?.postulantes?.map((post) => {
+            const existsPostulante = postulantesRecientes?.find((item) => item?.id === post?.postulante?.id);
+            if (!existsPostulante) {
+              postulantesRecientes?.push(post?.postulante);
+            }
+          });
+
+          const existsOnCantCargos = cantidadCargos?.find((item) => item?.nombre === llam?.cargo?.nombre);
+          if (existsOnCantCargos) {
+            const newItems = cantidadCargos?.map((item) => {
+              if (item?.nombre === llam?.cargo?.nombre) {
+                return {
+                  ...item,
+                  cantidad: item?.cantidad + 1,
+                }
+              }
+              return item;
+            })
+            cantidadCargos = newItems;
+          } else {
+            cantidadCargos?.push({
+              nombre: llam?.cargo?.nombre,
+              cantidad: 1,
+            })
+          }
+
+        });
+
+        const sortedLlamadosRecientes = llamadosRecientes?.sort(
+          (llamA: any, llamB: any) => {
+            if (
+              moment(llamA?.createdAt).isAfter(moment(llamB?.createdAt))
+            ) {
+              return -1;
+            } else {
+              return 1;
+            }
+          },
+        );
+
+        const formatLlamados =
+          sortedLlamadosRecientes?.map((llamado) => {
+            return formatLlamadoToList(llamado);
+          }) || [];
+
+        const orderPostulantes = postulantesRecientes?.sort(
+          (postA: any, postB: any) => {
+            if (
+              moment(postA?.createdAt).isAfter(moment(postB?.createdAt))
+            ) {
+              return -1;
+            } else {
+              return 1;
+            }
+          },
+        );
+
+        return {
+          llamadosEnProceso: countLlamadosEnProgreso,
+          llamadosFinalizados: countLlamadosFinalizados,
+          nuevosPostulantes: countPostulantesNuevos,
+          llamadosRecientes: formatLlamados,
+          postulantesRecientes: orderPostulantes,
+          cantidadCargos: cantidadCargos,
+        };
+      } catch (error) {
+        console.error(error?.message);
+        return null;
+      }
+    },
   },
   Subscription: {
     llamadoCreado: {
-      subscribe: () => llamadoSub.asyncIterator(["List_Llamados"]),
+      subscribe: () => llamadoSub.asyncIterator(['List_Llamados']),
     },
   },
 };

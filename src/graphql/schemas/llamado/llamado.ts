@@ -265,6 +265,20 @@ const llamadoSchema = gql`
     requisitoId: Int
   }
 
+  type CantidadCargo {
+    nombre: String
+    cantidad: Int
+  }
+
+  type EstadisticasGet {
+    llamadosEnProceso: Int
+    llamadosFinalizados: Int
+    nuevosPostulantes: Int
+    llamadosRecientes: [LlamadoList]
+    postulantesRecientes: [PostulanteListItemOutput]
+    cantidadCargos: [CantidadCargo]
+  }
+
   type PostulantePuntaje {
     postulanteId: Int
     requisitos: [RequisitoPostulanteList]
@@ -274,6 +288,7 @@ const llamadoSchema = gql`
     listarLlamados(filters: ListarLlamadoInputQuery): [LlamadoList]
     listarLlamadosByUser(userId: Int!): [LlamadoList]
     listarPuntajesPostulantes(llamadoId: Int): [PostulantePuntaje]
+    listarEstadisticas(itr: String, meses: String): EstadisticasGet
   }
 
   type Subscription {
