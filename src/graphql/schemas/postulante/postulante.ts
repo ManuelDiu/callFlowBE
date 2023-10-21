@@ -23,6 +23,7 @@ const postulanteSchema = gql`
     postulanteId: Int!
     solicitanteId: Int!
     nuevoEstado: String!
+    descripcion: String
   }
 
   input DataGrillaInput {
@@ -105,6 +106,7 @@ const postulanteSchema = gql`
     archivos: [Archivo]!
     estadoActual: EstadoData!
     updatedAt: Date!
+    descripcion: String
   }
 
   type PostulanteInLlamadoResumed {

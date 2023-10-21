@@ -33,7 +33,9 @@ export class PostulanteLlamado extends BaseEntity {
 
   @OneToMany(() => Cambio, (e) => e.postulante)
   cambios: Cambio[];
-
+  
+  @Column({ length: 1000, nullable: true, default: "" })
+  descripcion: string;
 
   @OneToMany(() => Archivo, (a) => a.postulante)
   archivos: Archivo[];

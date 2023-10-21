@@ -121,3 +121,9 @@ export type ListarLlamadoInputQuery = {
   selectedUsuarios: number[],
   selectedEstados: string[]
 }
+
+export type CambiarTribunalInput = {
+  id: number,
+  tipoMiembro: string,
+  orden: number,
+}

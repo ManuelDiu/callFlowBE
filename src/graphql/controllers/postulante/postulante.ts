@@ -328,6 +328,7 @@ const postulanteController: any = {
         });
 
         postulLlamado.estadoActual = nuevoEstado;
+        postulLlamado.descripcion = data.descripcion || "";
 
         await getRepository(PostulanteLlamado).save(postulLlamado);
         return {
@@ -436,6 +437,9 @@ const postulanteController: any = {
         const newCambio = new Cambio();
         newCambio.nombre = nuevoEstado.nombre;
         newCambio.postulante = postulLlamado;
+
+        postulLlamado.descripcion = data.descripcion || "";
+        await getRepository(PostulanteLlamado).save(postulLlamado);
 
         await generateHistorialItem({
           text: text,

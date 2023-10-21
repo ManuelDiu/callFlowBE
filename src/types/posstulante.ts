@@ -16,6 +16,7 @@ export type CambiarEstadoPostulanteLlamadoInput = {
   postulanteId: number;
   solicitanteId: number;
   nuevoEstado: EstadoPostulanteEnum;
+  descripcion?: string;
 };
 
 export type DeletePostulanteInput = {

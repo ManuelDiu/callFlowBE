@@ -139,8 +139,14 @@ const llamadoSchema = gql`
     tipoMiembro: TipoMiembro
   }
 
+  type PostulanteEstadoActual {
+    id: Int
+    nombre: String
+  }
+
   type LlamadoPostulante {
     postulante: PostulanteListItemOutput
+    estadoActual: PostulanteEstadoActual
   }
 
   input AddFileLlamadoInput {
@@ -214,6 +220,12 @@ const llamadoSchema = gql`
     subetapas: [SubEtapaGrilla!]!
   }
 
+  input CambiarTribunalInput {
+    id: Int
+    tipoMiembro: TipoMiembro
+    orden: Int
+  }
+
   type Query {
     getLlamadoById(llamadoId: Int): FullLlamadoInfo
     """
@@ -243,6 +255,9 @@ const llamadoSchema = gql`
     cambiarCambioLlamado(info: LlamadoChangeCambioInput): LlamadoResponseOk
     renunciarLlamado(info: RenunciarLlamadoInput): LlamadoResponseOk
     avanzarEtapaPostulanteInLlamado(data: AvanzarEtapaInput): MessageResponse
+
+    cambiarMiembroTribunal(data: CambiarTribunalInput): MessageResponse
+
   }
 
   type RequisitoPostulanteList {

@@ -13,6 +13,7 @@ const usuarioSchema = gql`
         Norte
         Este
         Centro_Sur
+        ULO
     }
 
     input LoginCredentials {

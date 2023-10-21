@@ -18,6 +18,7 @@ import { EstadoLlamadoEnum } from "enums/EstadoLlamadoEnum";
 import { EstadoPostulanteEnum } from "enums/EstadoPostulanteEnum";
 import { ITR } from "enums/ITR";
 import { Roles as EnumRoles } from "enums/Roles";
+import { TipoMiembro } from "enums/TipoMiembro";
 import { PubSub } from "graphql-subscriptions";
 import { notificationEmail } from "mailTemplates/notificationEmail.template";
 import { isAdmin } from "middlewares/permission-handler.middleware";
@@ -33,6 +34,7 @@ import {
   AddFileToLlamado,
   CambiarCambioLlamadoInput,
   CambiarEstadoLlamadoInput,
+  CambiarTribunalInput,
   LLamaodCreateInput,
   ListarLlamadoInputQuery,
   LlamadoCreateResponse,
@@ -586,6 +588,27 @@ const llamadoController: any = {
         };
       }
     },
+    cambiarMiembroTribunal: async (_: any, { data }: { data: CambiarTribunalInput }, context: any) => {
+      try {
+        await checkAuth(context ,[EnumRoles.admin]);
+        const tribunal = await getRepository(TribunalLlamado).findOne({ id:data?.id });
+        if (!tribunal) {
+          throw new Error("Erorr al obtener la informacion")
+        }
+        tribunal.orden = data.orden;
+        tribunal.tipoMiembro = data.tipoMiembro as TipoMiembro;
+        await getRepository(TribunalLlamado).save(tribunal);
+        return {
+          ok: true,
+          message: "Miembro actualizado correctamente",
+        }
+      } catch (error) {
+        return {
+          ok: false,
+          message: error?.message || "Error al cambiar el miembro del tribunal",
+        }
+      }
+    }
   },
   Query: {
     listarLlamados: async (
@@ -747,6 +770,7 @@ const llamadoController: any = {
               "categorias",
               "postulantes",
               "postulantes.postulante",
+              "postulantes.estadoActual",
               "miembrosTribunal",
               "miembrosTribunal.usuario",
               "historiales",
@@ -892,7 +916,7 @@ const llamadoController: any = {
     ): Promise<any> => {
       try {
         await checkAuth(context, [EnumRoles.admin]);
-        const llamado = await getRepository(Llamado).findOne({ id: llamadoId }, { relations: ['postulantes', 'postulantes.puntajes', 'postulantes.postulante', 'postulantes.puntajes.requisito'] });
+        const llamado = await getRepository(Llamado).findOne({ id: llamadoId }, { relations: ['postulantes', 'postulantes.estadoActual', 'postulantes.puntajes', 'postulantes.postulante', 'postulantes.puntajes.requisito'] });
         if (!llamado) {
           throw new Error("llamado invalido");
         }
@@ -909,7 +933,9 @@ const llamadoController: any = {
               }
             })
           }
-          dataToSend?.push(item);
+          if (post.estadoActual?.nombre === EstadoPostulanteEnum.cumpleRequisito) {
+            dataToSend?.push(item);
+          }
         }))
 
         return dataToSend;
