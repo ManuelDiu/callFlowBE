@@ -10,6 +10,7 @@ export type LlamadoList = {
   ultimaModificacion: String;
   ref: string;
   cupos: number;
+  itr?: String;
   cargo: CargoList;
   postulantes: number;
   progreso: number;
@@ -120,7 +121,8 @@ export type ListarLlamadoInputQuery = {
   selectedCargos: number[],
   selectedPostulantes: number[],
   selectedUsuarios: number[],
-  selectedEstados: string[]
+  selectedEstados: string[],
+  selectedITRs: string[],
 }
 
 export type CambiarTribunalInput = {

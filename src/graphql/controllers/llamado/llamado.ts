@@ -819,6 +819,18 @@ const llamadoController: any = {
         llamadosWithFilters = newLlamados;
       }
 
+      if (filters?.selectedITRs?.length > 0) {
+        console.log("sip 1")
+        const newLlamados = llamadosWithFilters?.filter((item) => {
+          const itr = item?.itr;
+          if (filters?.selectedITRs?.includes("Todos")) {
+            return true;
+          }
+          return filters?.selectedITRs?.includes(itr);
+        });
+        llamadosWithFilters = newLlamados;
+      }
+
       const allLlamadosFormtted =
         llamadosWithFilters?.map((llamado) => {
           return formatLlamadoToList(llamado);

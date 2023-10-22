@@ -49,6 +49,7 @@ export const formatLlamadoToList = (llamado: Llamado) => {
     ultimaModificacion: llamado?.updatedAt?.toString(),
     ref: llamado?.referencia,
     cupos: llamado?.cupos,
+    itr: llamado?.itr,
     cargo: llamado?.cargo,
     postulantes: llamado?.postulantes?.length,
     progreso: getProgressOfLlamado(llamado?.estadoActual),

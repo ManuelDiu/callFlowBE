@@ -14,6 +14,7 @@ const llamadoSchema = gql`
     ultimaModificacion: String
     ref: String
     cupos: Int
+    itr: String
     cargo: Cargo
     postulantes: Int
     progreso: Float
@@ -191,6 +192,7 @@ const llamadoSchema = gql`
     selectedPostulantes: [Int]
     selectedUsuarios: [Int]
     selectedEstados: [String]
+    selectedITRs: [String]
   }
 
   type RequisitoType {
