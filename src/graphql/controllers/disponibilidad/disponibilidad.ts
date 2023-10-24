@@ -24,7 +24,7 @@ export const disponibilidadController = {
             id: llamadoId,
           },
           {
-            relations: ['disponibilidad'],
+            relations: ['disponibilidad', 'disponibilidad.llamado'],
           },
         );
         if (!llamado) {
@@ -72,10 +72,14 @@ export const disponibilidadController = {
           throw new Error('Permisos insuficientes');
         }
         const disponibilidad = new Disponibilidad();
-        disponibilidad.fecha = moment(data.fecha).toDate();
+        const newFecha = moment(data.fecha, "DD/MM/YYYY").toDate();
+        console.log("fecha es", newFecha)
+
+        disponibilidad.fecha = newFecha;
         disponibilidad.horaMax = data.horaMax;
         disponibilidad.horaMin = data.horaMin;
         disponibilidad.llamado = llamado;
+
         await getRepository(Disponibilidad).save(disponibilidad);
         return {
           ok: true,
