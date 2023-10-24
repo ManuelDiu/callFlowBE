@@ -26,6 +26,7 @@ import moment from 'moment';
 import { getRepository } from 'typeorm';
 import {
   AvanzarEtapaData,
+  CurrentEtapaData,
   EtapaGrilla,
   RequisitoGrilla,
   RequisitoType,
@@ -559,7 +560,7 @@ const llamadoController: any = {
       context: any,
     ): Promise<MessageResponse> => {
       try {
-        // await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal, EnumRoles.cordinador]);
+        await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal, EnumRoles.cordinador]);
         console.log('postulanteId es', data.postulanteId);
         console.log('llamadoId es', data.llamadoId);
         const postulLlamado = await getRepository(
@@ -945,7 +946,14 @@ const llamadoController: any = {
             llamado: { id: llamadoId },
           },
           order: { createdAt: 'ASC' },
-          relations: ['llamado'],
+          relations: [
+            'llamado',
+            'subetapas',
+            'subetapas.requisitos',
+            'subetapas.requisitos.allPuntajes',
+            'subetapas.requisitos.allPuntajes.postulante',
+            'subetapas.requisitos.allPuntajes.postulante.postulante',
+        ],
         });
 
         const indexEtapaActual = etapasInLlamado.findIndex(
@@ -1005,7 +1013,69 @@ const llamadoController: any = {
             };
           }),
         };
-        return currentPostulanteEtapa;
+        const allEtapas: EtapaGrilla[] = etapasInLlamado.map((currEtapa, index) => {
+          let sumOfCurrentEtapa = Number(0);
+          currEtapa.subetapas.map((currSub) =>
+            currSub.requisitos.map(
+              (currReq) =>
+                (sumOfCurrentEtapa += Number(
+                  currReq?.allPuntajes?.find(
+                    (puntaje) =>
+                      puntaje?.postulante?.postulante?.id ===
+                      postulanteId,
+                  )?.valor || 0,
+                )),
+            ),
+          );
+          return {
+            id: currEtapa.id,
+            nombre: currEtapa.nombre,
+            puntajeMin: currEtapa.puntajeMin,
+            plazoDias: currEtapa.plazoDias,
+            total: sumOfCurrentEtapa,
+            currentEtapa: Number(index + 1),
+            cantEtapas: Number(cantidadDeEtapas),
+            subetapas: currEtapa.subetapas.map((currSub) => {
+              let totalSubetapa = Number(0);
+              currSub.requisitos.map(
+                (currReq) =>
+                  (totalSubetapa += Number(
+                    currReq?.allPuntajes?.find(
+                      (puntaje) =>
+                        puntaje?.postulante?.postulante?.id ===
+                        postulanteId,
+                    )?.valor || 0,
+                  )),
+              )
+              return {
+                id: currSub.id,
+                nombre: currSub.nombre,
+                puntajeMaximo: currSub?.puntajeMaximo,
+                subtotal: totalSubetapa,
+                requisitos: currSub?.requisitos.map(
+                  (currReq): RequisitoType => {
+                    console.log("current etapa: ", currEtapa.nombre)
+                    console.log("current subetapa: ", currSub.nombre)
+                    console.log("current req: ", currReq.allPuntajes)
+                    return {
+                      id: currReq.id,
+                      nombre: currReq.nombre,
+                      excluyente: currReq.excluyente,
+                      puntajeSugerido: currReq.puntajeSugerido,
+                      puntaje:
+                        currReq?.allPuntajes?.find(
+                          (puntaje) =>
+                            puntaje?.postulante?.postulante?.id ===
+                            postulanteId,
+                        )?.valor || 0,
+                    };
+                  },
+                ),
+              };
+            }),
+          };
+        })
+        return {currentEtapa: currentPostulanteEtapa, allEtapas: allEtapas } as CurrentEtapaData;
       } catch (error) {
         throw error;
       }

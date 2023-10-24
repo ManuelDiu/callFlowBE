@@ -222,6 +222,12 @@ const llamadoSchema = gql`
     subetapas: [SubEtapaGrilla!]!
   }
 
+  type CurrentEtapaData {
+    currentEtapa: EtapaGrilla!
+    allEtapas: [EtapaGrilla]!
+  }
+
+
   input CambiarTribunalInput {
     id: Int
     tipoMiembro: TipoMiembro
@@ -233,7 +239,7 @@ const llamadoSchema = gql`
     """
     Obtener data de la etapa en la que se encuentra un postulante en un llamado x.
     """
-    getEtapaActualPostInLlamado(llamadoId: Int!, postulanteId: Int!): EtapaGrilla
+    getEtapaActualPostInLlamado(llamadoId: Int!, postulanteId: Int!): CurrentEtapaData
   }
 
   input RenunciarLlamadoInput {

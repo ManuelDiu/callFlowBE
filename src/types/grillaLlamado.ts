@@ -41,3 +41,8 @@ export type AvanzarEtapaData = {
   llamadoId: number;
   currentEtapa: number
 };
+
+export type CurrentEtapaData = {
+  currentEtapa: EtapaGrilla;
+  allEtapas: EtapaGrilla[];
+};

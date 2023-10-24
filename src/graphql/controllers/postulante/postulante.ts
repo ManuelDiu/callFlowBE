@@ -195,7 +195,7 @@ const postulanteController: any = {
       context: any
     ): Promise<MessageResponse> => {
       try {
-        // await checkAuth(context, [EnumRoles.tribunal]);
+        await checkAuth(context, [EnumRoles.tribunal]);
 
         const postulLlamado = await getRepository(PostulanteLlamado).findOne({
           where: {
@@ -534,7 +534,7 @@ const postulanteController: any = {
       context: any
     ) => {
       try {
-        // await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal, EnumRoles.cordinador]);
+        await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal, EnumRoles.cordinador]);
         const postulLlamado = await getRepository(PostulanteLlamado).find({
           where: {
             llamado: { id: llamadoId },
