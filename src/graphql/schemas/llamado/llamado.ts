@@ -91,6 +91,7 @@ const llamadoSchema = gql`
     descripcion: String
     usuario: UserList
     createdAt: String
+    llamado: LlamadoList
     cambio: Cambio
   }
 
@@ -297,6 +298,7 @@ const llamadoSchema = gql`
     listarLlamadosByUser(userId: Int!): [LlamadoList]
     listarPuntajesPostulantes(llamadoId: Int): [PostulantePuntaje]
     listarEstadisticas(itr: String, meses: String): EstadisticasGet
+    listarAllHistoriales: [HistorialLlamado]
   }
 
   type Subscription {

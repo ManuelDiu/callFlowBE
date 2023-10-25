@@ -462,7 +462,7 @@ const llamadoController: any = {
           cambio?.postulante?.postulante?.nombres
         }"</span> a <span class="estadoColor" >"${
           cambio?.nombre
-        }"</span>
+        }"</span> en el llamado "${historialItem.llamado.nombre}
         `;
 
         const emailText = `
@@ -560,7 +560,11 @@ const llamadoController: any = {
       context: any,
     ): Promise<MessageResponse> => {
       try {
-        await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal, EnumRoles.cordinador]);
+        await checkAuth(context, [
+          EnumRoles.admin,
+          EnumRoles.tribunal,
+          EnumRoles.cordinador,
+        ]);
         console.log('postulanteId es', data.postulanteId);
         console.log('llamadoId es', data.llamadoId);
         const postulLlamado = await getRepository(
@@ -693,6 +697,68 @@ const llamadoController: any = {
     },
   },
   Query: {
+    listarAllHistoriales: async (
+      _: any,
+      __: any,
+      context: any,
+    ): Promise<any[]> => {
+      try {
+        await checkAuth(context, [
+          EnumRoles.admin,
+          EnumRoles.cordinador,
+          EnumRoles.tribunal,
+        ]);
+        const allHistoriales: any[] = [];
+
+        const loggedUserInfo = await getLoggedUserInfo(context);
+        const isAdmin = userIsAdmin(loggedUserInfo);
+
+        const llamados = await getRepository(Llamado).find({
+          relations: [
+            'historiales',
+            'historiales.cambio',
+            'historiales.usuario',
+            'historiales.llamado',
+            'miembrosTribunal',
+            'solicitante',
+          ],
+        });
+
+        const filterLlamados = llamados?.filter((llamado) => {
+          if (isAdmin) {
+            return true;
+          } else {
+            const existsOnTribunal =
+              llamado?.miembrosTribunal?.find(
+                (tribunal) =>
+                  tribunal?.usuario?.id === loggedUserInfo?.id &&
+                  tribunal?.motivoRenuncia === '',
+              ) !== undefined;
+            return (
+              llamado?.solicitante?.id === loggedUserInfo?.id ||
+              existsOnTribunal
+            );
+          }
+        });
+
+        filterLlamados?.map((llamado) => {
+          llamado?.historiales?.map((historial) => {
+            allHistoriales?.push(historial);
+          });
+        });
+
+        const orderedItems = allHistoriales?.sort((itemA, itemB) => {
+          if (Number(itemA?.createdAt) > Number(itemB?.createdAt)) {
+            return -1;
+          } else {
+            return 1;
+          }
+        })
+        return orderedItems;
+      } catch (error) {
+        return [];
+      }
+    },
     listarLlamados: async (
       _: any,
       { filters }: { filters: ListarLlamadoInputQuery },
@@ -821,10 +887,10 @@ const llamadoController: any = {
       }
 
       if (filters?.selectedITRs?.length > 0) {
-        console.log("sip 1")
+        console.log('sip 1');
         const newLlamados = llamadosWithFilters?.filter((item) => {
           const itr = item?.itr;
-          if (filters?.selectedITRs?.includes("Todos")) {
+          if (filters?.selectedITRs?.includes('Todos')) {
             return true;
           }
           return filters?.selectedITRs?.includes(itr);
@@ -870,6 +936,8 @@ const llamadoController: any = {
               'miembrosTribunal.usuario',
               'historiales',
               'historiales.cambio',
+              'historiales.usuario',
+              'historiales.llamado',
               'archivos',
               'archivos.tipoArchivo',
               'archivosFirma',
@@ -953,7 +1021,7 @@ const llamadoController: any = {
             'subetapas.requisitos.allPuntajes',
             'subetapas.requisitos.allPuntajes.postulante',
             'subetapas.requisitos.allPuntajes.postulante.postulante',
-        ],
+          ],
         });
 
         const indexEtapaActual = etapasInLlamado.findIndex(
@@ -1013,69 +1081,74 @@ const llamadoController: any = {
             };
           }),
         };
-        const allEtapas: EtapaGrilla[] = etapasInLlamado.map((currEtapa, index) => {
-          let sumOfCurrentEtapa = Number(0);
-          currEtapa.subetapas.map((currSub) =>
-            currSub.requisitos.map(
-              (currReq) =>
-                (sumOfCurrentEtapa += Number(
-                  currReq?.allPuntajes?.find(
-                    (puntaje) =>
-                      puntaje?.postulante?.postulante?.id ===
-                      postulanteId,
-                  )?.valor || 0,
-                )),
-            ),
-          );
-          return {
-            id: currEtapa.id,
-            nombre: currEtapa.nombre,
-            puntajeMin: currEtapa.puntajeMin,
-            plazoDias: currEtapa.plazoDias,
-            total: sumOfCurrentEtapa,
-            currentEtapa: Number(index + 1),
-            cantEtapas: Number(cantidadDeEtapas),
-            subetapas: currEtapa.subetapas.map((currSub) => {
-              let totalSubetapa = Number(0);
+        const allEtapas: EtapaGrilla[] = etapasInLlamado.map(
+          (currEtapa, index) => {
+            let sumOfCurrentEtapa = Number(0);
+            currEtapa.subetapas.map((currSub) =>
               currSub.requisitos.map(
                 (currReq) =>
-                  (totalSubetapa += Number(
+                  (sumOfCurrentEtapa += Number(
                     currReq?.allPuntajes?.find(
                       (puntaje) =>
                         puntaje?.postulante?.postulante?.id ===
                         postulanteId,
                     )?.valor || 0,
                   )),
-              )
-              return {
-                id: currSub.id,
-                nombre: currSub.nombre,
-                puntajeMaximo: currSub?.puntajeMaximo,
-                subtotal: totalSubetapa,
-                requisitos: currSub?.requisitos.map(
-                  (currReq): RequisitoType => {
-                    console.log("current etapa: ", currEtapa.nombre)
-                    console.log("current subetapa: ", currSub.nombre)
-                    console.log("current req: ", currReq.allPuntajes)
-                    return {
-                      id: currReq.id,
-                      nombre: currReq.nombre,
-                      excluyente: currReq.excluyente,
-                      puntajeSugerido: currReq.puntajeSugerido,
-                      puntaje:
-                        currReq?.allPuntajes?.find(
-                          (puntaje) =>
-                            puntaje?.postulante?.postulante?.id ===
-                            postulanteId,
-                        )?.valor || 0,
-                    };
-                  },
-                ),
-              };
-            }),
-          };
-        })
-        return {currentEtapa: currentPostulanteEtapa, allEtapas: allEtapas } as CurrentEtapaData;
+              ),
+            );
+            return {
+              id: currEtapa.id,
+              nombre: currEtapa.nombre,
+              puntajeMin: currEtapa.puntajeMin,
+              plazoDias: currEtapa.plazoDias,
+              total: sumOfCurrentEtapa,
+              currentEtapa: Number(index + 1),
+              cantEtapas: Number(cantidadDeEtapas),
+              subetapas: currEtapa.subetapas.map((currSub) => {
+                let totalSubetapa = Number(0);
+                currSub.requisitos.map(
+                  (currReq) =>
+                    (totalSubetapa += Number(
+                      currReq?.allPuntajes?.find(
+                        (puntaje) =>
+                          puntaje?.postulante?.postulante?.id ===
+                          postulanteId,
+                      )?.valor || 0,
+                    )),
+                );
+                return {
+                  id: currSub.id,
+                  nombre: currSub.nombre,
+                  puntajeMaximo: currSub?.puntajeMaximo,
+                  subtotal: totalSubetapa,
+                  requisitos: currSub?.requisitos.map(
+                    (currReq): RequisitoType => {
+                      console.log('current etapa: ', currEtapa.nombre);
+                      console.log('current subetapa: ', currSub.nombre);
+                      console.log('current req: ', currReq.allPuntajes);
+                      return {
+                        id: currReq.id,
+                        nombre: currReq.nombre,
+                        excluyente: currReq.excluyente,
+                        puntajeSugerido: currReq.puntajeSugerido,
+                        puntaje:
+                          currReq?.allPuntajes?.find(
+                            (puntaje) =>
+                              puntaje?.postulante?.postulante?.id ===
+                              postulanteId,
+                          )?.valor || 0,
+                      };
+                    },
+                  ),
+                };
+              }),
+            };
+          },
+        );
+        return {
+          currentEtapa: currentPostulanteEtapa,
+          allEtapas: allEtapas,
+        } as CurrentEtapaData;
       } catch (error) {
         throw error;
       }
@@ -1173,7 +1246,7 @@ const llamadoController: any = {
     },
     listarEstadisticas: async (
       _: any,
-      { itr, meses }: { itr: any, meses: string },
+      { itr, meses }: { itr: any; meses: string },
       context: any,
     ): Promise<EstadisticasGet> => {
       try {
@@ -1212,22 +1285,23 @@ const llamadoController: any = {
           });
         }
 
-        console.log("meses is", meses)
-        const llamadosRecientes = allLlamados.filter((item) =>
-          {
-            const prevDate =  moment().subtract('months', Number(meses || "3"));
-            console.log("createdAt", moment(item?.createdAt))
-            console.log("prevDate", prevDate)
-            return moment(item?.createdAt).isAfter(prevDate)
-          },
-        );
-        console.log("llamadosRecientes", llamadosRecientes)
+        console.log('meses is', meses);
+        const llamadosRecientes = allLlamados.filter((item) => {
+          const prevDate = moment().subtract(
+            'months',
+            Number(meses || '3'),
+          );
+          console.log('createdAt', moment(item?.createdAt));
+          console.log('prevDate', prevDate);
+          return moment(item?.createdAt).isAfter(prevDate);
+        });
+        console.log('llamadosRecientes', llamadosRecientes);
 
         let countLlamadosEnProgreso = 0;
         let countLlamadosFinalizados = 0;
         let countPostulantesNuevos = 0;
         let postulantesRecientes: any[] = [];
-        let cantidadCargos : any[] = [];
+        let cantidadCargos: any[] = [];
 
         llamadosRecientes.forEach((llam) => {
           if (
@@ -1243,31 +1317,34 @@ const llamadoController: any = {
           }
           countPostulantesNuevos += llam.postulantes?.length || 0;
           llam?.postulantes?.map((post) => {
-            const existsPostulante = postulantesRecientes?.find((item) => item?.id === post?.postulante?.id);
+            const existsPostulante = postulantesRecientes?.find(
+              (item) => item?.id === post?.postulante?.id,
+            );
             if (!existsPostulante) {
               postulantesRecientes?.push(post?.postulante);
             }
           });
 
-          const existsOnCantCargos = cantidadCargos?.find((item) => item?.nombre === llam?.cargo?.nombre);
+          const existsOnCantCargos = cantidadCargos?.find(
+            (item) => item?.nombre === llam?.cargo?.nombre,
+          );
           if (existsOnCantCargos) {
             const newItems = cantidadCargos?.map((item) => {
               if (item?.nombre === llam?.cargo?.nombre) {
                 return {
                   ...item,
                   cantidad: item?.cantidad + 1,
-                }
+                };
               }
               return item;
-            })
+            });
             cantidadCargos = newItems;
           } else {
             cantidadCargos?.push({
               nombre: llam?.cargo?.nombre,
               cantidad: 1,
-            })
+            });
           }
-
         });
 
         const sortedLlamadosRecientes = llamadosRecientes?.sort(

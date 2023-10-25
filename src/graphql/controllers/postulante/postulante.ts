@@ -318,7 +318,7 @@ const postulanteController: any = {
         }
 
         const text = `
-          El Administrador (CDP) <span class="userColor">"${usuarioSolicitante.name} ${usuarioSolicitante?.lastName}"</span> cambió el estado del postulante <span class="userColor" >"${postulLlamado.postulante.nombres} ${postulLlamado.postulante?.apellidos}"</span> desde <span class="estadoColor" >"${postulLlamado.estadoActual.nombre}"</span> a <span class="estadoColor" >"${nuevoEstado.nombre}"</span>.
+          El Administrador (CDP) <span class="userColor">"${usuarioSolicitante.name} ${usuarioSolicitante?.lastName}"</span> cambió el estado del postulante <span class="userColor" >"${postulLlamado.postulante.nombres} ${postulLlamado.postulante?.apellidos}"</span> desde <span class="estadoColor" >"${postulLlamado.estadoActual.nombre}"</span> a <span class="estadoColor" >"${nuevoEstado.nombre}"</span> en el llamado ${postulLlamado?.llamado?.nombre}.
         `;
 
         await generateHistorialItem({
@@ -431,7 +431,7 @@ const postulanteController: any = {
         }
 
         const text = `
-        El Miembro del tribunal <span class="userColor">"${usuarioSolicitante.name} ${usuarioSolicitante?.lastName}"</span> solicitó el cambio de estado para el postulante <span class="userColor" >"${postulLlamado.postulante.nombres} ${postulLlamado.postulante?.apellidos}"</span> desde <span class="estadoColor" >"${postulLlamado.estadoActual.nombre}"</span> a <span class="estadoColor" >"${nuevoEstado.nombre}"</span>.
+        El Miembro del tribunal <span class="userColor">"${usuarioSolicitante.name} ${usuarioSolicitante?.lastName}"</span> solicitó el cambio de estado para el postulante <span class="userColor" >"${postulLlamado.postulante.nombres} ${postulLlamado.postulante?.apellidos}"</span> desde <span class="estadoColor" >"${postulLlamado.estadoActual.nombre}"</span> a <span class="estadoColor" >"${nuevoEstado.nombre}"</span> en el llamado ${foundHistorialItem?.llamado?.nombre}.
         `;
 
         const newCambio = new Cambio();
