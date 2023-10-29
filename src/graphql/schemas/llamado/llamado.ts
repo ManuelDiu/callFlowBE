@@ -1,4 +1,4 @@
-import { gql } from "apollo-server-express";
+import { gql } from 'apollo-server-express';
 
 const llamadoSchema = gql`
   scalar Date
@@ -42,8 +42,6 @@ const llamadoSchema = gql`
     puntajeMinimo: Int!
     subetapas: [SubetapaCreate]!
   }
-
-  
 
   input LlamadoInfoCreate {
     nombre: String!
@@ -125,13 +123,14 @@ const llamadoSchema = gql`
   }
 
   type ArchivoFirma {
+    urlOriginal: String
     id: Int
     nombre: String
     url: String
     extension: String
+    tipoArchivoFirma: String
     firmas: [Firmas]
   }
-
 
   type TribunalLlamado {
     usuario: UserList
@@ -228,7 +227,6 @@ const llamadoSchema = gql`
     allEtapas: [EtapaGrilla]!
   }
 
-
   input CambiarTribunalInput {
     id: Int
     tipoMiembro: TipoMiembro
@@ -240,7 +238,10 @@ const llamadoSchema = gql`
     """
     Obtener data de la etapa en la que se encuentra un postulante en un llamado x.
     """
-    getEtapaActualPostInLlamado(llamadoId: Int!, postulanteId: Int!): CurrentEtapaData
+    getEtapaActualPostInLlamado(
+      llamadoId: Int!
+      postulanteId: Int!
+    ): CurrentEtapaData
   }
 
   input RenunciarLlamadoInput {
@@ -261,12 +262,15 @@ const llamadoSchema = gql`
     cambiarEstadoLlamado(
       info: CambiarEstadoLlamadoInput
     ): LlamadoResponseOk
-    cambiarCambioLlamado(info: LlamadoChangeCambioInput): LlamadoResponseOk
+    cambiarCambioLlamado(
+      info: LlamadoChangeCambioInput
+    ): LlamadoResponseOk
     renunciarLlamado(info: RenunciarLlamadoInput): LlamadoResponseOk
-    avanzarEtapaPostulanteInLlamado(data: AvanzarEtapaInput): MessageResponse
+    avanzarEtapaPostulanteInLlamado(
+      data: AvanzarEtapaInput
+    ): MessageResponse
 
     cambiarMiembroTribunal(data: CambiarTribunalInput): MessageResponse
-
   }
 
   type RequisitoPostulanteList {

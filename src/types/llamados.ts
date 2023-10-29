@@ -85,6 +85,10 @@ export type AddFileToLlamadoFirma = {
   llamadoId: number;
 };
 
+export type FirmarArchivoInput = {
+  archivoFirmaId: number;
+  url: string;
+};
 
 export type CambiarEstadoLlamadoInput = {
   llamadoId: number;

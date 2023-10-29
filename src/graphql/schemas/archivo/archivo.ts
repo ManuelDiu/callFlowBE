@@ -31,11 +31,17 @@ const archivoSchema = gql`
     solicitanteId: Int!
   }
 
+  input FirmarArchivoInput {
+    archivoFirmaId: Int!
+    url: String!
+  }
+
   type Mutation {
     addFileToLlamado(info: AddFileLlamadoInput): LlamadoResponseOk
     addFileToPostulante(info: AddFilePostulanteInput): MessageResponse
     addArchivoFirmaToLlamado(info: AddFileLlamadoInputFirma): LlamadoResponseOk
     deleteArchivo(archivoId: Int): MessageResponse
+    firmarArchivo(info: FirmarArchivoInput): MessageResponse
   }
 `;
 
