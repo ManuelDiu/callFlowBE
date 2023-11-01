@@ -201,7 +201,7 @@ const archivoController = {
           },
         );
         if (!archivoFirma) {
-          throw new Error('El archiv de firma es invalido');
+          throw new Error('El archivo de firma es inválido');
         }
         archivoFirma.url = info?.url;
 
@@ -226,11 +226,11 @@ const archivoController = {
         await getRepository(ArchivoFirma).save(archivoFirma);
 
         const text = `
-        El usuario <span class="userColor">"${loggedUserInfo.name} ${loggedUserInfo?.lastName}"</span> firmo el archivo <span class="fileNameColor" >"${archivoFirma?.nombre}"</span>'.
+        El usuario <span class="userColor">"${loggedUserInfo.name} ${loggedUserInfo?.lastName}"</span> firmó el archivo <span class="fileNameColor" >"${archivoFirma?.nombre}"</span>'.
       `;
 
         const emailText = `
-      El usuario <span class="userColor">"${loggedUserInfo.name} ${loggedUserInfo?.lastName}"</span> firmo el archivo <span class="fileNameColor" >"${archivoFirma?.nombre}"</span> del llamado '${archivoFirma?.llamado?.nombre}'.
+      El usuario <span class="userColor">"${loggedUserInfo.name} ${loggedUserInfo?.lastName}"</span> firmó el archivo <span class="fileNameColor" >"${archivoFirma?.nombre}"</span> del llamado '${archivoFirma?.llamado?.nombre}'.
     `;
 
         await generateHistorialItem({
