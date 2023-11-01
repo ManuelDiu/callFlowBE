@@ -3,51 +3,51 @@ import { EstadoLlamadoEnum } from "../enums/EstadoLlamadoEnum";
 export const estadoLlamadoSeed = [
     {
         id: 1,
-        nombre: EstadoLlamadoEnum.creado,
+        nombre: EstadoLlamadoEnum.publicacionPendiente,
     },
     {
         id: 2,
-        nombre: EstadoLlamadoEnum.enRelevamiento,
+        nombre: EstadoLlamadoEnum.abierto,
     },
     {
         id: 3,
-        nombre: EstadoLlamadoEnum.listoParaEstudioMerito,
+        nombre: EstadoLlamadoEnum.bajarCvs,
     },
     {
         id: 4,
-        nombre: EstadoLlamadoEnum.enEstudioMerito,
+        nombre: EstadoLlamadoEnum.conformacionTribunal,
     },
     {
         id: 5,
-        nombre: EstadoLlamadoEnum.listoParaEntrevistas,
+        nombre: EstadoLlamadoEnum.cvsCompartidos,
     },
     {
         id: 6,
-        nombre: EstadoLlamadoEnum.enEntrevias,
+        nombre: EstadoLlamadoEnum.entrevistas,
     },
     {
         id: 7,
-        nombre: EstadoLlamadoEnum.listoParaPsicotecnico,
+        nombre: EstadoLlamadoEnum.psicotecnicoSolicitado,
     },
     {
         id: 8,
-        nombre: EstadoLlamadoEnum.enPsicotecnico,
+        nombre: EstadoLlamadoEnum.psicotecnicoCompartido,
     },
     {
         id: 9,
-        nombre: EstadoLlamadoEnum.listoParaFirmarGrilla,
+        nombre: EstadoLlamadoEnum.pendienteHacerActa,
     },
     {
         id: 10,
-        nombre: EstadoLlamadoEnum.enProcesoDeFrimaGrilla,
+        nombre: EstadoLlamadoEnum.pendienteHacerFirma,
     },
     {
         id: 11,
-        nombre: EstadoLlamadoEnum.listoParaFirmarActaFinal,
+        nombre: EstadoLlamadoEnum.pendieteSubidaCDC,
     },
     {
         id: 12,
-        nombre: EstadoLlamadoEnum.enProcesoDeFrimaActaFinal,
+        nombre: EstadoLlamadoEnum.pendienteSubidaCDACGA,
     },
     {
         id: 13,

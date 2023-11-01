@@ -100,7 +100,7 @@ export const templateController = {
             id: newTemplate?.id,
           },
           {
-            relations: ['etapa'],
+            relations: ['cargo', 'etapa', 'etapa.subetapas', 'etapa.subetapas.requisitos', 'etapa.subetapas.requisitos.allPuntajes'],
           },
         );
         templateSub.publish('List_Template', {
@@ -112,6 +112,7 @@ export const templateController = {
           message: 'Template creado correctamente',
         };
       } catch (error) {
+        console.log("error is", error)
         if (error?.message?.includes('Duplicate entry')) {
           return {
             ok: false,
@@ -186,7 +187,7 @@ export const templateController = {
     listarTemplates: async (): Promise<TemplateList[]> => {
       try {
         const templates = await getRepository(Template).find({
-          relations: ['cargo', 'etapa'],
+          relations: ['cargo', 'etapa', 'etapa.subetapas', 'etapa.subetapas.requisitos', 'etapa.subetapas.requisitos.allPuntajes'],
         });
         if (!templates || templates?.length === 0) {
           return [];

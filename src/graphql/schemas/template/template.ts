@@ -5,7 +5,7 @@ const templateSchema = gql`
     id: Int
     nombre: String
     cargo: Cargo
-    etapas: Int
+    etapas: [EtapaList]
     color: String
     activo: Boolean
   }

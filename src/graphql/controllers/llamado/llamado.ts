@@ -101,7 +101,7 @@ const llamadoController: any = {
         }
         const llamadoInitialState = await getRepository(
           EstadoPosibleLlamado,
-        ).findOne({ nombre: EstadoLlamadoEnum.creado });
+        ).findOne({ nombre: EstadoLlamadoEnum.publicacionPendiente });
 
         const llamado = new Llamado();
         llamado.nombre = llamadoInfo.nombre;
@@ -1285,7 +1285,6 @@ const llamadoController: any = {
           });
         }
 
-        console.log('meses is', meses);
         const llamadosRecientes = allLlamados.filter((item) => {
           const prevDate = moment().subtract(
             'months',
@@ -1295,7 +1294,6 @@ const llamadoController: any = {
           console.log('prevDate', prevDate);
           return moment(item?.createdAt).isAfter(prevDate);
         });
-        console.log('llamadosRecientes', llamadosRecientes);
 
         let countLlamadosEnProgreso = 0;
         let countLlamadosFinalizados = 0;

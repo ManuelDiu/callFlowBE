@@ -7,7 +7,7 @@ export type TemplateList = {
   nombre: String;
   color: string;
   cargo: CargoList,
-  etapas: number,
+  etapas: any[],
 };
 
 export type TemplateCreateInput = {
