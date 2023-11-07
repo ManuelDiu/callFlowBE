@@ -42,6 +42,8 @@ import {
   ListarLlamadoInputQuery,
   LlamadoCreateResponse,
   LlamadoList,
+  PaginationInput,
+  PaginationLlamado,
   RenunciarLlamadoInput,
 } from 'types/llamados';
 import { MessageResponse } from 'types/response';
@@ -905,6 +907,162 @@ const llamadoController: any = {
 
       return allLlamadosFormtted;
     },
+    listarLlamadosPaged: async (
+      _: any,
+      { filters, pagination }: { filters: ListarLlamadoInputQuery, pagination: PaginationInput },
+      context: any,
+    ): Promise<PaginationLlamado> => {
+      await checkAuth(context, [
+        EnumRoles.admin,
+        EnumRoles.tribunal,
+        EnumRoles.cordinador,
+      ]);
+      const loggedUserInfo = await getLoggedUserInfo(context);
+      const isAdmin = userIsAdmin(loggedUserInfo);
+
+
+      const llamadosItems = await getRepository(Llamado).find({
+        relations: [
+          'estadoActual',
+          'cargo',
+          'postulantes',
+          'solicitante',
+          'miembrosTribunal',
+          'miembrosTribunal.usuario',
+          'categorias',
+        ],
+      });
+
+      const totalPages = Math.ceil(llamadosItems?.length / pagination?.offset);
+
+      const previousPage = ((pagination?.currentPage || 1) - 1) * pagination?.offset;
+      const llamados = llamadosItems?.slice(previousPage, pagination?.currentPage * pagination?.offset);
+
+
+      const filterLlamados = llamados?.filter((llamado) => {
+        if (isAdmin) {
+          return true;
+        } else {
+          const existsOnTribunal =
+            llamado?.miembrosTribunal?.find(
+              (tribunal) =>
+                tribunal?.usuario?.id === loggedUserInfo?.id &&
+                tribunal?.motivoRenuncia === '',
+            ) !== undefined;
+          return (
+            llamado?.solicitante?.id === loggedUserInfo?.id ||
+            existsOnTribunal
+          );
+        }
+      });
+
+      // with filters
+      let llamadosWithFilters: Llamado[] = filterLlamados;
+
+      if (filters?.selectedCargos?.length > 0) {
+        const newLlamados = llamadosWithFilters?.filter((item) => {
+          const cargoId = item?.cargo?.id;
+          return filters?.selectedCargos?.includes(cargoId);
+        });
+        llamadosWithFilters = newLlamados;
+      }
+
+      if (filters?.selectedCategorias?.length > 0) {
+        llamadosWithFilters?.forEach((item) => {
+          const categoriasIdsOfLlamado = item?.categorias?.map(
+            (item) => item?.id,
+          );
+
+          filters?.selectedCategorias?.forEach((catId) => {
+            if (categoriasIdsOfLlamado?.includes(catId)) {
+              // correct
+              if (
+                !llamadosWithFilters?.find(
+                  (llam) => llam.id === item?.id,
+                )
+              ) {
+                llamadosWithFilters = [...llamadosWithFilters, item];
+              }
+            } else {
+              // no correct
+              if (
+                llamadosWithFilters?.find(
+                  (llam) => llam.id === item?.id,
+                )
+              ) {
+                llamadosWithFilters = llamadosWithFilters?.filter(
+                  (llam) => llam?.id !== item?.id,
+                );
+              }
+            }
+          });
+        });
+      }
+
+      if (filters?.selectedPostulantes?.length > 0) {
+        llamadosWithFilters?.forEach((item) => {
+          const postulantesOfLlamado = item?.postulantes?.map(
+            (item) => item?.id,
+          );
+          //1 , 2 ,3
+
+          //1, 2
+          filters?.selectedPostulantes?.forEach((postId) => {
+            if (postulantesOfLlamado?.includes(postId)) {
+              // correct
+              if (
+                !llamadosWithFilters?.find(
+                  (llam) => llam.id === item?.id,
+                )
+              ) {
+                llamadosWithFilters = [...llamadosWithFilters, item];
+              }
+            } else {
+              // no correct
+              if (
+                llamadosWithFilters?.find(
+                  (llam) => llam.id === item?.id,
+                )
+              ) {
+                llamadosWithFilters = llamadosWithFilters?.filter(
+                  (llam) => llam?.id !== item?.id,
+                );
+              }
+            }
+          });
+        });
+      }
+
+      if (filters?.selectedEstados?.length > 0) {
+        const newLlamados = llamadosWithFilters?.filter((item) => {
+          const estadoActual = item?.estadoActual.nombre;
+          return filters?.selectedEstados?.includes(estadoActual);
+        });
+        llamadosWithFilters = newLlamados;
+      }
+
+      if (filters?.selectedITRs?.length > 0) {
+        console.log('sip 1');
+        const newLlamados = llamadosWithFilters?.filter((item) => {
+          const itr = item?.itr;
+          if (filters?.selectedITRs?.includes('Todos')) {
+            return true;
+          }
+          return filters?.selectedITRs?.includes(itr);
+        });
+        llamadosWithFilters = newLlamados;
+      }
+
+      const allLlamadosFormtted =
+        llamadosWithFilters?.map((llamado) => {
+          return formatLlamadoToList(llamado);
+        }) || [];
+
+      return {
+        llamados: allLlamadosFormtted,
+        totalPages: totalPages,
+      }
+    },
     getLlamadoById: async (
       _: any,
       { llamadoId }: { llamadoId: number },
@@ -1378,7 +1536,7 @@ const llamadoController: any = {
           llamadosEnProceso: countLlamadosEnProgreso,
           llamadosFinalizados: countLlamadosFinalizados,
           nuevosPostulantes: countPostulantesNuevos,
-          llamadosRecientes: formatLlamados,
+          llamadosRecientes: formatLlamados?.slice(0, 10),
           postulantesRecientes: orderPostulantes,
           cantidadCargos: cantidadCargos,
         };

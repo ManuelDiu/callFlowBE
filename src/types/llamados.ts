@@ -16,6 +16,11 @@ export type LlamadoList = {
   progreso: number;
 };
 
+export type PaginationLlamado = {
+  llamados: LlamadoList[],
+  totalPages: number,
+}
+
 export type Requisito = {
   index?: number;
   nombre: string;
@@ -127,6 +132,11 @@ export type ListarLlamadoInputQuery = {
   selectedUsuarios: number[],
   selectedEstados: string[],
   selectedITRs: string[],
+}
+
+export type PaginationInput = {
+  offset: number,
+  currentPage: number,
 }
 
 export type CambiarTribunalInput = {

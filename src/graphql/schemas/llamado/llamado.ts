@@ -297,9 +297,20 @@ const llamadoSchema = gql`
     requisitos: [RequisitoPostulanteList]
   }
 
+  type PaginationLlamados {
+    llamados: [LlamadoList]
+    totalPages: Int
+  }
+
+  input PaginationInput {
+    offset: Int
+    currentPage: Int
+  }
+
   type Query {
     listarLlamados(filters: ListarLlamadoInputQuery): [LlamadoList]
     listarLlamadosByUser(userId: Int!): [LlamadoList]
+    listarLlamadosPaged(filters: ListarLlamadoInputQuery, pagination: PaginationInput): PaginationLlamados
     listarPuntajesPostulantes(llamadoId: Int): [PostulantePuntaje]
     listarEstadisticas(itr: String, meses: String): EstadisticasGet
     listarAllHistoriales: [HistorialLlamado]
