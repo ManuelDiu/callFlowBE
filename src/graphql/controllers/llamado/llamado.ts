@@ -1140,6 +1140,11 @@ const llamadoController: any = {
       context: any,
     ) => {
       try {
+        await checkAuth(context, [
+          EnumRoles.admin,
+          EnumRoles.tribunal,
+          EnumRoles.cordinador,
+        ]);
         // await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal, EnumRoles.cordinador]);
         const postulLlamado = await getRepository(
           PostulanteLlamado,
@@ -1317,7 +1322,7 @@ const llamadoController: any = {
       context: any,
     ): Promise<any> => {
       try {
-        await checkAuth(context, [EnumRoles.admin]);
+        await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal]);
         const llamado = await getRepository(Llamado).findOne(
           { id: llamadoId },
           {
