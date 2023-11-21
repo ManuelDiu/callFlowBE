@@ -29,7 +29,6 @@ const pubsub = new PubSub();
 
 const usuarioController: any = {
   Mutation: {
-    getAlgo: () => 'algo',
     createUser: async (
       _: any,
       {
@@ -37,8 +36,10 @@ const usuarioController: any = {
       }: {
         data: CreateUserType;
       },
+      context: any
     ): Promise<CreateUserResponse> => {
       try {
+        await checkAuth(context, [EnumRoles.admin]);
         const newUser = new Usuario();
 
         newUser.name = data?.name;
@@ -288,8 +289,10 @@ const usuarioController: any = {
     disabledUser: async (
       _: any,
       { uid }: { uid: number },
+      context: any,
     ): Promise<CreateUserResponse> => {
       try {
+        await checkAuth(context, [EnumRoles.admin]);
         const userInfo = await getRepository(Usuario).findOne(
           {
             id: uid,
@@ -320,8 +323,10 @@ const usuarioController: any = {
     updateUser: async (
       _: any,
       { info }: { info: UserList },
+      context: any,
     ): Promise<CreateUserResponse> => {
       try {
+        await checkAuth(context, [EnumRoles.admin]);
         const userInfo = await getRepository(Usuario).findOne(
           {
             id: info?.id,

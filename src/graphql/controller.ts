@@ -8,9 +8,6 @@ import { templateController } from './controllers/template/template';
 import archivoController from './controllers/archivo/archivo';
 import { disponibilidadController } from './controllers/disponibilidad/disponibilidad';
 
-interface TestUserInput {
-  name: string;
-}
 
 const controller = {
   Mutation: {

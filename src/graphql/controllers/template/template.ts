@@ -164,8 +164,10 @@ export const templateController = {
       _: any,
       { templateId }: { templateId: number },
       ___: any,
+      context: any,
     ): Promise<TemplateInfo> => {
       try {
+        await checkAuth(context, [EnumRoles.admin]);
         const templateInfo = await getRepository(Template).findOne(
           { id: templateId },
           {
@@ -184,8 +186,17 @@ export const templateController = {
     },
   },
   Query: {
-    listarTemplates: async (): Promise<TemplateList[]> => {
+    listarTemplates: async (
+      _: any,
+      __: any,
+      context: any
+    ): Promise<TemplateList[]> => {
       try {
+        await checkAuth(context, [
+          EnumRoles.admin,
+          EnumRoles.tribunal,
+          EnumRoles.cordinador,
+        ]);
         const templates = await getRepository(Template).find({
           relations: ['cargo', 'etapa', 'etapa.subetapas', 'etapa.subetapas.requisitos', 'etapa.subetapas.requisitos.allPuntajes'],
         });

@@ -105,7 +105,6 @@ const usuarioSchema = gql`
         checkToken(token: String): UserList
         resetPassword(info: ResetPasswordInput!): AuthUserResponse
         forgetPassword(info: ForgetPasswordInput!): AuthUserResponse
-        testCreateUser: String
         disabledUser(uid: Int): AuthUserResponse
         updateUser(info: UpdateUser): AuthUserResponse
     }

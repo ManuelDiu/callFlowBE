@@ -48,20 +48,10 @@ var schema = gql`
         message: String
     }
 
-    type Query {
-        message: MessageResponse,
-        testUsuario: MessageResponse
-    }
-
     input CreateUserInput {
         name: String
     }
 
-    type Mutation {
-        getAlgo: String
-        testUser(name: String!): MessageResponse
-        prueba: String
-    }
 `;
 
 

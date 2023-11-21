@@ -60,11 +60,6 @@ const llamadoSub = new PubSub();
 
 const llamadoController: any = {
   Mutation: {
-    prueba: async (_: any, __: any, context: any) => {
-      await checkAuth(context, [EnumRoles.cordinador, EnumRoles.admin]);
-
-      return 'solo llega si el usuario tiene rol cordinador o admin';
-    },
     crearLlamado: async (
       _: any,
       { info }: { info: LLamaodCreateInput },
@@ -565,7 +560,6 @@ const llamadoController: any = {
         await checkAuth(context, [
           EnumRoles.admin,
           EnumRoles.tribunal,
-          EnumRoles.cordinador,
         ]);
         console.log('postulanteId es', data.postulanteId);
         console.log('llamadoId es', data.llamadoId);
@@ -1140,12 +1134,7 @@ const llamadoController: any = {
       context: any,
     ) => {
       try {
-        await checkAuth(context, [
-          EnumRoles.admin,
-          EnumRoles.tribunal,
-          EnumRoles.cordinador,
-        ]);
-        // await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal, EnumRoles.cordinador]);
+        await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal]);
         const postulLlamado = await getRepository(
           PostulanteLlamado,
         ).findOne({
