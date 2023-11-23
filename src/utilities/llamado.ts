@@ -9,6 +9,7 @@ import { getRepository } from 'typeorm';
 import { LlamadoList } from 'types/llamados';
 import { sendEmail } from './mail';
 import { Cambio } from 'entities/cambio/cambio.entity';
+import { getLoggedUserInfo } from './checkAuth';
 
 const ORDER_LLAMADO_STATUS = [
   EstadoLlamadoEnum.publicacionPendiente,
@@ -57,26 +58,29 @@ export const formatLlamadoToList = (llamado: Llamado) => {
 };
 
 type Props = {
-  text: string,
-  llamadoId: number,
-  userId: number,
-  cambio?: Cambio,
-  emailText?: string,
-}
+  text: string;
+  llamadoId: number;
+  userId: number;
+  cambio?: Cambio;
+  emailText?: string;
+};
 
 export const generateHistorialItem = async ({
   text,
   llamadoId,
   userId,
   cambio,
-  emailText
+  emailText,
 }: Props) => {
   try {
-    const llamado = await getRepository(Llamado).findOne({
-      id: llamadoId
-    }, {
-      relations: ['creadoPor', 'miembrosTribunal']
-    });
+    const llamado = await getRepository(Llamado).findOne(
+      {
+        id: llamadoId,
+      },
+      {
+        relations: ['creadoPor', 'miembrosTribunal'],
+      },
+    );
     const usuario = await getRepository(Usuario).findOne({
       id: userId,
     });
@@ -88,7 +92,7 @@ export const generateHistorialItem = async ({
     historialItem.descripcion = text;
     historialItem.llamado = llamado;
     historialItem.usuario = usuario;
-    if(cambio){
+    if (cambio) {
       historialItem.cambio = cambio;
       await getRepository(Cambio).save(cambio);
     }
@@ -129,5 +133,29 @@ export const generateHistorialItem = async ({
     }
   } catch (error) {
     throw new Error(error);
+  }
+};
+
+export const checkIfTribunalRenuncio = async (
+  context: number,
+  llamadoId: number,
+) => {
+  const loggedUserInfo = await getLoggedUserInfo(context);
+  const llamadoInfo = await getRepository(Llamado).findOne(
+    { id: llamadoId },
+    {
+      relations: ['miembrosTribunal', 'miembrosTribunal.usuario'],
+    },
+  );
+  if (!llamadoInfo) {
+    throw new Error('El usuario rencuncio a este llamado');
+  }
+  const existsOnTribunal = llamadoInfo.miembrosTribunal.find((item) => {
+    return item.usuario.id === loggedUserInfo.id;
+  });
+  if (existsOnTribunal && existsOnTribunal.motivoRenuncia !== '') {
+    throw new Error(
+      'Error, el miembro del tribunal renuncio al llamado, por lo tanto no puede acceder a la informacion',
+    );
   }
 };

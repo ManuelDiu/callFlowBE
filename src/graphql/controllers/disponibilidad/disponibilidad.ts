@@ -73,7 +73,6 @@ export const disponibilidadController = {
         }
         const disponibilidad = new Disponibilidad();
         const newFecha = moment(data.fecha, "DD/MM/YYYY").toDate();
-        console.log("fecha es", newFecha)
 
         disponibilidad.fecha = newFecha;
         disponibilidad.horaMax = data.horaMax;

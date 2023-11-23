@@ -195,7 +195,7 @@ const postulanteController: any = {
       context: any
     ): Promise<MessageResponse> => {
       try {
-        await checkAuth(context, [EnumRoles.tribunal]);
+        await checkAuth(context, [EnumRoles.tribunal, EnumRoles.admin]);
 
         const postulLlamado = await getRepository(PostulanteLlamado).findOne({
           where: {
@@ -249,7 +249,6 @@ const postulanteController: any = {
             if (foundPuntaje.valor !== currentReq.nuevoPuntaje) {
               foundPuntaje.valor = currentReq.nuevoPuntaje;
               await getRepository(Puntaje).save(foundPuntaje);
-              console.log("Puntaje modificado con exito.");
             }
           }
         });
@@ -318,7 +317,7 @@ const postulanteController: any = {
         }
 
         const text = `
-          El Administrador (CDP) <span class="userColor">"${usuarioSolicitante.name} ${usuarioSolicitante?.lastName}"</span> cambió el estado del postulante <span class="userColor" >"${postulLlamado.postulante.nombres} ${postulLlamado.postulante?.apellidos}"</span> desde <span class="estadoColor" >"${postulLlamado.estadoActual.nombre}"</span> a <span class="estadoColor" >"${nuevoEstado.nombre}"</span> en el llamado ${postulLlamado?.llamado?.nombre}.
+          El Administrador (CDP) <span class="userColor">"${usuarioSolicitante.name} ${usuarioSolicitante?.lastName}"</span> cambió el estado del postulante <span class="userColor" >"${postulLlamado.postulante.nombres} ${postulLlamado.postulante?.apellidos}"</span> desde <span class="estadoColor" >"${postulLlamado.estadoActual.nombre}"</span> a <span class="estadoColor" >"${nuevoEstado.nombre}"</span> ${postulLlamado?.llamado?.nombre}.
         `;
 
         await generateHistorialItem({
@@ -353,7 +352,7 @@ const postulanteController: any = {
       context: any
     ): Promise<MessageResponse> => {
       try {
-        await checkAuth(context, [EnumRoles.tribunal]);
+        await checkAuth(context, [EnumRoles.tribunal, EnumRoles.admin]);
         const postulLlamado = await getRepository(PostulanteLlamado).findOne({
           where: {
             postulante: { id: data.postulanteId },
@@ -431,8 +430,9 @@ const postulanteController: any = {
         }
 
         const text = `
-        El Miembro del tribunal <span class="userColor">"${usuarioSolicitante.name} ${usuarioSolicitante?.lastName}"</span> solicitó el cambio de estado para el postulante <span class="userColor" >"${postulLlamado.postulante.nombres} ${postulLlamado.postulante?.apellidos}"</span> desde <span class="estadoColor" >"${postulLlamado.estadoActual.nombre}"</span> a <span class="estadoColor" >"${nuevoEstado.nombre}"</span> en el llamado ${foundHistorialItem?.llamado?.nombre}.
+        El Miembro del tribunal <span class="userColor">"${usuarioSolicitante.name} ${usuarioSolicitante?.lastName}"</span> solicitó el cambio de estado para el postulante <span class="userColor" >"${postulLlamado.postulante.nombres} ${postulLlamado.postulante?.apellidos}"</span> desde <span class="estadoColor" >"${postulLlamado.estadoActual.nombre}"</span> a <span class="estadoColor" >"${nuevoEstado.nombre}"</span> en el llamado ${postulLlamado?.llamado?.nombre}.
         `;
+
 
         const newCambio = new Cambio();
         newCambio.nombre = nuevoEstado.nombre;
@@ -547,8 +547,6 @@ const postulanteController: any = {
             "No se han encontrado postulantes dentro de este llamado."
           );
         }
-        console.log("PostulanteLlamado", postulLlamado);
-
         const formattedPostulantes: PostulanteInLlamadoResumed[] = postulLlamado.map(
           (item) => {
             return {

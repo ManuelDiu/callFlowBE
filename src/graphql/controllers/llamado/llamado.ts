@@ -50,6 +50,7 @@ import { MessageResponse } from 'types/response';
 import { RequisitoList } from 'types/template';
 import { checkAuth, getLoggedUserInfo } from 'utilities/checkAuth';
 import {
+  checkIfTribunalRenuncio,
   formatLlamadoToList,
   generateHistorialItem,
 } from 'utilities/llamado';
@@ -317,6 +318,7 @@ const llamadoController: any = {
     ) => {
       try {
         await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal]);
+        await checkIfTribunalRenuncio(context, info.llamadoId)
         const loggedUserInfo = await getLoggedUserInfo(context);
         const isAdmin = userIsAdmin(loggedUserInfo);
 
@@ -422,6 +424,8 @@ const llamadoController: any = {
             relations: ['postulante', 'postulante.postulante'],
           },
         );
+        await checkIfTribunalRenuncio(context, historialItem.llamado.id);
+
         if (!cambio || !historialItem) {
           throw new Error('Error al validar los datos enviados');
         }
@@ -429,13 +433,11 @@ const llamadoController: any = {
         await getRepository(Cambio).save(cambio);
 
         if (info?.accept === true) {
-          console.log('si, accept');
           const postulanteLlamado = await getRepository(
             PostulanteLlamado,
           ).findOne({
             id: cambio?.postulante?.id,
           });
-          console.log('postulanteLlamadoId', postulanteLlamado?.id);
           if (!postulanteLlamado) {
             throw new Error('Error al validar los datos enviados');
           }
@@ -561,8 +563,8 @@ const llamadoController: any = {
           EnumRoles.admin,
           EnumRoles.tribunal,
         ]);
-        console.log('postulanteId es', data.postulanteId);
-        console.log('llamadoId es', data.llamadoId);
+        await checkIfTribunalRenuncio(context, data.llamadoId);
+
         const postulLlamado = await getRepository(
           PostulanteLlamado,
         ).findOne({
@@ -587,7 +589,6 @@ const llamadoController: any = {
             'No se ha encontrado el postulante en el llamado especificado.',
           );
         }
-        console.log('PostulanteLlamado', postulLlamado.estadoActual);
 
         const etapa = postulLlamado.etapa;
         const etapasInLlamado = await getRepository(Etapa).find({
@@ -614,8 +615,6 @@ const llamadoController: any = {
         }
 
         const siguienteEtapa = etapaActual + 1;
-        console.log('etapa actual ', etapaActual);
-        console.log('siguienteEtapa ', siguienteEtapa);
         if (siguienteEtapa > cantidadDeEtapas) {
           throw new Error(
             'No hay etapa a la que avanzar al postulante.',
@@ -655,7 +654,6 @@ const llamadoController: any = {
           message: 'Etapa del postulante avanzada correctamente.',
         };
       } catch (error) {
-        console.log('AvanzarEtapaPostulanteInLlamado Error', error);
         return {
           ok: false,
           message: error?.message,
@@ -883,7 +881,6 @@ const llamadoController: any = {
       }
 
       if (filters?.selectedITRs?.length > 0) {
-        console.log('sip 1');
         const newLlamados = llamadosWithFilters?.filter((item) => {
           const itr = item?.itr;
           if (filters?.selectedITRs?.includes('Todos')) {
@@ -949,6 +946,8 @@ const llamadoController: any = {
           );
         }
       });
+
+      console.log("filterLlamados", filterLlamados)
 
       // with filters
       let llamadosWithFilters: Llamado[] = filterLlamados;
@@ -1036,7 +1035,6 @@ const llamadoController: any = {
       }
 
       if (filters?.selectedITRs?.length > 0) {
-        console.log('sip 1');
         const newLlamados = llamadosWithFilters?.filter((item) => {
           const itr = item?.itr;
           if (filters?.selectedITRs?.includes('Todos')) {
@@ -1070,6 +1068,8 @@ const llamadoController: any = {
         ]);
         const loggedUserInfo = await getLoggedUserInfo(context);
         const isAdmin = userIsAdmin(loggedUserInfo);
+        await checkIfTribunalRenuncio(context, llamadoId);
+
         const llamadoInfo = await getRepository(Llamado).findOne(
           { id: llamadoId },
           {
@@ -1135,6 +1135,8 @@ const llamadoController: any = {
     ) => {
       try {
         await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal]);
+        await checkIfTribunalRenuncio(context, llamadoId);
+
         const postulLlamado = await getRepository(
           PostulanteLlamado,
         ).findOne({
@@ -1275,9 +1277,6 @@ const llamadoController: any = {
                   subtotal: totalSubetapa,
                   requisitos: currSub?.requisitos.map(
                     (currReq): RequisitoType => {
-                      console.log('current etapa: ', currEtapa.nombre);
-                      console.log('current subetapa: ', currSub.nombre);
-                      console.log('current req: ', currReq.allPuntajes);
                       return {
                         id: currReq.id,
                         nombre: currReq.nombre,
@@ -1312,6 +1311,8 @@ const llamadoController: any = {
     ): Promise<any> => {
       try {
         await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal]);
+        await checkIfTribunalRenuncio(context, llamadoId);
+
         const llamado = await getRepository(Llamado).findOne(
           { id: llamadoId },
           {
@@ -1406,7 +1407,6 @@ const llamadoController: any = {
         let allLlamados: Llamado[] = [];
 
         if (!itr || itr === '') {
-          console.log('si1');
           allLlamados = await getRepository(Llamado).find({
             relations: [
               'estadoActual',
@@ -1442,8 +1442,6 @@ const llamadoController: any = {
             'months',
             Number(meses || '3'),
           );
-          console.log('createdAt', moment(item?.createdAt));
-          console.log('prevDate', prevDate);
           return moment(item?.createdAt).isAfter(prevDate);
         });
 
