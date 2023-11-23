@@ -163,7 +163,6 @@ export const templateController = {
     getTemplateById: async (
       _: any,
       { templateId }: { templateId: number },
-      ___: any,
       context: any,
     ): Promise<TemplateInfo> => {
       try {
@@ -179,6 +178,7 @@ export const templateController = {
             'Error al cargar la informacion del template',
           );
         }
+        console.log("templateInfo is", templateInfo)
         return templateInfo as any;
       } catch (error) {
         return null;
