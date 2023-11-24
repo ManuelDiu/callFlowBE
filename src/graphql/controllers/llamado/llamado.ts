@@ -242,7 +242,7 @@ const llamadoController: any = {
           isAdmin ? 'Admin' : 'Miembro del tribunal'
         } <span class="userColor" >${loggedUserInfo?.name} ${
           loggedUserInfo?.lastName
-        }</span> creo el llamado '${llamado?.nombre}'`;
+        }</span> creó el llamado '${llamado?.nombre}'`;
 
         await generateHistorialItem({
           text: text,
@@ -357,7 +357,7 @@ const llamadoController: any = {
           } <span class="userColor" >${loggedUserInfo?.name} ${
           loggedUserInfo?.lastName
         }</span>
-          cambio el estado del llamado '${
+          cambió el estado del llamado '${
             llamado?.nombre
           }' a <span class="estadoColor">${
           info?.estado
@@ -535,7 +535,7 @@ const llamadoController: any = {
         const text = `
         El 'Miembro del tribunal'
          <span class="userColor" >${loggedUserInfo?.name} ${loggedUserInfo?.lastName}</span>
-        renuncio al llamado <span class="estadoColor">${llamado?.nombre}</span>`;
+        renunció al llamado <span class="estadoColor">${llamado?.nombre}</span>`;
 
         await generateHistorialItem({
           text: text,
