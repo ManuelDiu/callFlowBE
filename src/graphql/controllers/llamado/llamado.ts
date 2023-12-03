@@ -34,6 +34,7 @@ import {
 } from 'types/grillaLlamado';
 import {
   AddFileToLlamado,
+  AddPostulanteToLlamado,
   CambiarCambioLlamadoInput,
   CambiarEstadoLlamadoInput,
   CambiarTribunalInput,
@@ -679,6 +680,87 @@ const llamadoController: any = {
         return {
           ok: true,
           message: 'Miembro actualizado correctamente',
+        };
+      } catch (error) {
+        return {
+          ok: false,
+          message:
+            error?.message ||
+            'Error al cambiar el miembro del tribunal',
+        };
+      }
+    },
+    agregarPostulanteALlamadoExistente: async (
+      _: any,
+      { data }: { data: AddPostulanteToLlamado },
+      context: any,
+    ) => {
+      try {
+        await checkAuth(context, [EnumRoles.admin, EnumRoles.tribunal]);
+
+        const llamadoInfo = await getRepository(
+          Llamado,
+        ).findOne({
+          where: {
+            id: data.llamadoId
+          },
+          relations: [
+            'etapas',
+            'etapas.postulantes',
+            'postulantes',
+            'postulantes.postulante',
+            'postulantes.estadoActual',
+            'estadoActual',
+          ],
+        });
+
+        if (!llamadoInfo) {
+          throw new Error('El llamado no existe');
+        }
+        console.log("llamadoInfoo ", llamadoInfo.etapas[0])
+
+        if (llamadoInfo.estadoActual.nombre !== EstadoLlamadoEnum.publicacionPendiente) {
+          throw new Error('El llamado está en una etapa avanzada, no se permite agregar nuevos postulantes.');
+        }
+
+        const foundPostulante = await getRepository(Postulante).findOne({
+          id: data.postulanteId,
+        });
+
+        if (!foundPostulante) {
+          throw new Error('Postulante no encontrado.');
+        }
+
+        if (llamadoInfo.postulantes.find((postulanteLlamado) => postulanteLlamado.postulante.id === data.postulanteId)) {
+          throw new Error('El postulante ya forma parte del llamado.');
+        }
+
+        const estadoInicial = await getRepository(
+          EstadoPostulante,
+        ).findOne({ nombre: EstadoPostulanteEnum.cumpleRequisito });
+
+        if (!estadoInicial) {
+          throw new Error('El estado inicial para el postulante no existe.');
+        }
+
+        const postulante_llamado = new PostulanteLlamado();
+        postulante_llamado.postulante = foundPostulante;
+        postulante_llamado.estadoActual = estadoInicial;
+        postulante_llamado.etapa = llamadoInfo.etapas[0];
+
+        await getRepository(PostulanteLlamado).save(
+          postulante_llamado,
+        );
+
+        llamadoInfo.postulantes.push(postulante_llamado);
+
+        await getRepository(Llamado).save(
+          llamadoInfo,
+        );
+
+        return {
+          ok: true,
+          message: 'Postulante agregado correctamente.',
         };
       } catch (error) {
         return {

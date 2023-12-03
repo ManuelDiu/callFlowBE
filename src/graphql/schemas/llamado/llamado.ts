@@ -256,6 +256,11 @@ const llamadoSchema = gql`
     currentEtapa: Int!
   }
 
+  input AgregarPostulanteALlamadoInput {
+    llamadoId: Int!
+    postulanteId: Int!
+  }
+
   type Mutation {
     crearLlamado(info: CreateLlamadoInput): LlamadoResponseOk
     deshabilitarLlamados(llamados: [Int]): LlamadoResponseOk
@@ -268,6 +273,9 @@ const llamadoSchema = gql`
     renunciarLlamado(info: RenunciarLlamadoInput): LlamadoResponseOk
     avanzarEtapaPostulanteInLlamado(
       data: AvanzarEtapaInput
+    ): MessageResponse
+    agregarPostulanteALlamadoExistente(
+      data: AgregarPostulanteALlamadoInput
     ): MessageResponse
 
     cambiarMiembroTribunal(data: CambiarTribunalInput): MessageResponse

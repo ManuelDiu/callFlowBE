@@ -1,7 +1,7 @@
-import { TipoMiembro } from 'enums/TipoMiembro';
-import { CargoList } from './cargo';
-import { EstadoLlamadoEnum } from 'enums/EstadoLlamadoEnum';
-import { PostulanteList } from './posstulante';
+import { TipoMiembro } from "enums/TipoMiembro";
+import { CargoList } from "./cargo";
+import { EstadoLlamadoEnum } from "enums/EstadoLlamadoEnum";
+import { PostulanteList } from "./posstulante";
 
 export type LlamadoList = {
   id: number;
@@ -17,9 +17,9 @@ export type LlamadoList = {
 };
 
 export type PaginationLlamado = {
-  llamados: LlamadoList[],
-  totalPages: number,
-}
+  llamados: LlamadoList[];
+  totalPages: number;
+};
 
 export type Requisito = {
   index?: number;
@@ -117,34 +117,36 @@ export type EtapaResumed = {
   updatedAt: Date;
 };
 
-
 export type RenunciarLlamadoInput = {
-  llamadoId: number,
-  userId: number,
-  motivoRenuncia: string,
-}
-
+  llamadoId: number;
+  userId: number;
+  motivoRenuncia: string;
+};
 
 export type ListarLlamadoInputQuery = {
-  selectedCategorias: number[],
-  selectedCargos: number[],
-  selectedPostulantes: number[],
-  selectedUsuarios: number[],
-  selectedEstados: string[],
-  selectedITRs: string[],
-}
+  selectedCategorias: number[];
+  selectedCargos: number[];
+  selectedPostulantes: number[];
+  selectedUsuarios: number[];
+  selectedEstados: string[];
+  selectedITRs: string[];
+};
 
 export type PaginationInput = {
-  offset: number,
-  currentPage: number,
-}
+  offset: number;
+  currentPage: number;
+};
 
 export type CambiarTribunalInput = {
-  id: number,
-  tipoMiembro: string,
-  orden: number,
-}
+  id: number;
+  tipoMiembro: string;
+  orden: number;
+};
 
+export type AddPostulanteToLlamado = {
+  postulanteId: number;
+  llamadoId: number;
+};
 
 export type EstadisticasGet = {
   llamadosEnProceso: number;
@@ -153,4 +155,4 @@ export type EstadisticasGet = {
   llamadosRecientes: any[];
   postulantesRecientes: PostulanteList[];
   cantidadCargos: any[];
-}
+};
