@@ -100,7 +100,13 @@ export const templateController = {
             id: newTemplate?.id,
           },
           {
-            relations: ['cargo', 'etapa', 'etapa.subetapas', 'etapa.subetapas.requisitos', 'etapa.subetapas.requisitos.allPuntajes'],
+            relations: [
+              'cargo',
+              'etapa',
+              'etapa.subetapas',
+              'etapa.subetapas.requisitos',
+              'etapa.subetapas.requisitos.allPuntajes',
+            ],
           },
         );
         templateSub.publish('List_Template', {
@@ -112,7 +118,7 @@ export const templateController = {
           message: 'Template creado correctamente',
         };
       } catch (error) {
-        console.log("error is", error)
+        console.log('error is', error);
         if (error?.message?.includes('Duplicate entry')) {
           return {
             ok: false,
@@ -170,7 +176,12 @@ export const templateController = {
         const templateInfo = await getRepository(Template).findOne(
           { id: templateId },
           {
-            relations: ['etapa', 'cargo', 'etapa.subetapas', 'etapa.subetapas.requisitos'],
+            relations: [
+              'etapa',
+              'cargo',
+              'etapa.subetapas',
+              'etapa.subetapas.requisitos',
+            ],
           },
         );
         if (!templateInfo) {
@@ -178,8 +189,22 @@ export const templateController = {
             'Error al cargar la informacion del template',
           );
         }
-        console.log("templateInfo is", templateInfo)
-        return templateInfo as any;
+
+        console.log('templateInfo is', templateInfo);
+        const newEtapas = [...templateInfo?.etapa]?.sort(
+          (itemA: any, itemB: any) => {
+            if (itemA?.createdAt > itemB?.createdAt) {
+              return 1;
+            } else {
+              return -1;
+            }
+          },
+        );
+
+        return {
+          ...templateInfo,
+          etapa: newEtapas,
+        } as any;
       } catch (error) {
         return null;
       }
@@ -189,7 +214,7 @@ export const templateController = {
     listarTemplates: async (
       _: any,
       __: any,
-      context: any
+      context: any,
     ): Promise<TemplateList[]> => {
       try {
         await checkAuth(context, [
@@ -198,7 +223,13 @@ export const templateController = {
           EnumRoles.cordinador,
         ]);
         const templates = await getRepository(Template).find({
-          relations: ['cargo', 'etapa', 'etapa.subetapas', 'etapa.subetapas.requisitos', 'etapa.subetapas.requisitos.allPuntajes'],
+          relations: [
+            'cargo',
+            'etapa',
+            'etapa.subetapas',
+            'etapa.subetapas.requisitos',
+            'etapa.subetapas.requisitos.allPuntajes',
+          ],
         });
         if (!templates || templates?.length === 0) {
           return [];

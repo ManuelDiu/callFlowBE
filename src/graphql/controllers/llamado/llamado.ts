@@ -172,6 +172,8 @@ const llamadoController: any = {
         );
         await crearTribunales;
 
+        console.log("etapas is, ", etapas)
+
         const createEtapas = Promise.all(
           etapas?.map(async (etapa, index) => {
             const newEtapa = new Etapa();
@@ -334,20 +336,24 @@ const llamadoController: any = {
         ).findOne({
           nombre: info.estado,
         });
-        if (!estado) {
+        if (!estado && info.estado) {
           throw new Error('El estado no existe');
         }
         const etapa = await getRepository(Etapa).findOne({
           id: info.etapa,
         });
 
-        if (!etapa) {
+        if (!etapa && info.etapa) {
           throw new Error('La etapa no existe');
         }
         // create historial item
         // send mail
-        llamado.etapaActual = etapa;
-        llamado.estadoActual = estado;
+        if (etapa) {
+          llamado.etapaActual = etapa;
+        }
+        if (info?.estado) {
+          llamado.estadoActual = estado;
+        }
         llamado.etapaUpdated = new Date();
         llamado.updatedAt = new Date();
         await getRepository(Llamado).save(llamado);
@@ -361,10 +367,10 @@ const llamadoController: any = {
           cambió el estado del llamado '${
             llamado?.nombre
           }' a <span class="estadoColor">${
-          info?.estado
-        }</span> , y la etapa actual a <span class="estadoColor">${
-          etapa?.nombre
-        }</span>
+          info?.estado ?? "No cambió estado"
+        }</span> , ${etapa ? `y la etapa actual a <span class="estadoColor">${
+          etapa?.nombre ?? "No tiene etapa"}` : ""}
+        </span>
         `;
 
         await generateHistorialItem({
@@ -1199,9 +1205,21 @@ const llamadoController: any = {
             'Error al acceder a la informacion de llamado, permisos invalidos',
           );
         }
+
+        const newEtapas = [...llamadoInfo?.etapas]?.sort(
+          (itemA: any, itemB: any) => {
+            if (itemA?.createdAt > itemB?.createdAt) {
+              return 1;
+            } else {
+              return -1;
+            }
+          },
+        );
+
         return {
           ...llamadoInfo,
           etapaUpdated: llamadoInfo?.etapaUpdated?.toString(),
+          etapas: newEtapas,
         };
       } catch (error) {
         throw error;
@@ -1245,7 +1263,7 @@ const llamadoController: any = {
         }
         // console.log("PostulanteLlamado", postulLlamado.etapa);
         const etapa = postulLlamado.etapa;
-        const etapasInLlamado = await getRepository(Etapa).find({
+        const etapas = await getRepository(Etapa).find({
           where: {
             llamado: { id: llamadoId },
           },
@@ -1259,6 +1277,16 @@ const llamadoController: any = {
             'subetapas.requisitos.allPuntajes.postulante.postulante',
           ],
         });
+
+        const etapasInLlamado = [...etapas]?.sort(
+          (itemA: any, itemB: any) => {
+            if (itemA?.createdAt > itemB?.createdAt) {
+              return 1;
+            } else {
+              return -1;
+            }
+          },
+        );
 
         const indexEtapaActual = etapasInLlamado.findIndex(
           (currEtapa) => currEtapa.id === etapa.id,

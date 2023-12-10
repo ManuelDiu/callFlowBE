@@ -182,8 +182,8 @@ const llamadoSchema = gql`
 
   input CambiarEstadoLlamadoInput {
     llamadoId: Int!
-    etapa: Int!
-    estado: String!
+    etapa: Int
+    estado: String
   }
 
   input ListarLlamadoInputQuery {
