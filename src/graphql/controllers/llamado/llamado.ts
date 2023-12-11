@@ -1622,7 +1622,7 @@ const llamadoController: any = {
             return formatLlamadoToList(llamado);
           }) || [];
 
-        const orderPostulantes = postulantesRecientes?.sort(
+        const orderPostulantes = (postulantesRecientes?.sort(
           (postA: any, postB: any) => {
             if (
               moment(postA?.createdAt).isAfter(moment(postB?.createdAt))
@@ -1632,13 +1632,13 @@ const llamadoController: any = {
               return 1;
             }
           },
-        );
+        )?? [])?.slice(0,5);
 
         return {
           llamadosEnProceso: countLlamadosEnProgreso,
           llamadosFinalizados: countLlamadosFinalizados,
           nuevosPostulantes: countPostulantesNuevos,
-          llamadosRecientes: formatLlamados?.slice(0, 10),
+          llamadosRecientes: formatLlamados?.slice(0, 5),
           postulantesRecientes: orderPostulantes,
           cantidadCargos: cantidadCargos,
         };
