@@ -810,18 +810,21 @@ const llamadoController: any = {
           if (isAdmin) {
             return true;
           } else {
+            console.log("llamado?.miembrosTribunal", llamado?.id, llamado?.miembrosTribunal)
             const existsOnTribunal =
-              llamado?.miembrosTribunal?.find(
+              typeof llamado?.miembrosTribunal?.find(
                 (tribunal) =>
                   tribunal?.usuario?.id === loggedUserInfo?.id &&
                   tribunal?.motivoRenuncia === '',
-              ) !== undefined;
+              ) !== "undefined";
             return (
               llamado?.solicitante?.id === loggedUserInfo?.id ||
               existsOnTribunal
             );
           }
         });
+
+        console.log("filterLlamados", filterLlamados)
 
         filterLlamados?.map((llamado) => {
           llamado?.historiales?.map((historial) => {
@@ -1026,7 +1029,7 @@ const llamadoController: any = {
             llamado?.miembrosTribunal?.find(
               (tribunal) =>
                 tribunal?.usuario?.id === loggedUserInfo?.id &&
-                tribunal?.motivoRenuncia === '',
+                tribunal?.motivoRenuncia === '' && tribunal?.tipoMiembro === TipoMiembro.titular,
             ) !== undefined;
           return (
             llamado?.solicitante?.id === loggedUserInfo?.id ||
